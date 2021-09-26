@@ -22,31 +22,7 @@ using namespace cgra;
 using namespace glm;
 
 
-void basic_model::draw(const glm::mat4 &view, const glm::mat4 proj) {
-	mat4 modelview = view * modelTransform;
-	
-	glUseProgram(shader); // load shader and variables
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
-
-	drawCylinder();
-	//mesh.draw(); // draw
-}
-
-
-Application::Application(GLFWwindow *window) : m_window(window) {
-	
-	shader_builder sb;
-    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	GLuint shader = sb.build();
-
-	m_model.shader = shader;
-	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
-	m_model.color = vec3(1, 0, 0);
-//	m_model.mesh.mode
-}
+Application::Application(GLFWwindow *window) : m_window(window) {}
 
 
 void Application::render() {
@@ -81,8 +57,8 @@ void Application::render() {
 	glPolygonMode(GL_FRONT_AND_BACK, (m_showWireframe) ? GL_LINE : GL_FILL);
 
 
-	// draw the model
-	m_model.draw(view, proj);
+	// draw
+	terrain_renderer.render(view, proj);
 }
 
 
@@ -90,7 +66,7 @@ void Application::renderGUI() {
 
 	// setup window
 	ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiSetCond_Once);
-	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, 310), ImGuiSetCond_Once);
 	ImGui::Begin("Options", 0);
 
 	// display current camera parameters
@@ -107,13 +83,19 @@ void Application::renderGUI() {
 	ImGui::SameLine();
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 
-	
+
 	ImGui::Separator();
 
-	// example of how to use input boxes
-	static float exampleInput;
-	if (ImGui::InputFloat("example input", &exampleInput)) {
-		cout << "example input changed to " << exampleInput << endl;
+	if (ImGui::CollapsingHeader("Terrain")) {
+		terrain_renderer.renderGUI();
+	}
+
+	if (ImGui::CollapsingHeader("Water")) {
+		water_renderer.renderGUI();
+	}
+
+	if (ImGui::CollapsingHeader("Fog")) {
+		fog_renderer.renderGUI();
 	}
 
 	// finish creating window
