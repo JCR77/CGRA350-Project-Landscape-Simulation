@@ -43,8 +43,9 @@ TerrainRenderer::TerrainRenderer() {
 	GLuint shader = sb.build();
 
 	m_model.shader = shader;
+	m_model.modelTransform = translate(mat4(1), vec3(10,10,0));
 	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
-	m_model.color = vec3(1, 0, 0);
+	m_model.color = vec3(0, 1, 0);
 	//	m_model.mesh.mode
 }
 
