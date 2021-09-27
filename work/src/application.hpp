@@ -8,21 +8,9 @@
 // project
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
-#include "skeleton_model.hpp"
-
-
-// Basic model that holds the shader, mesh and transform for drawing.
-// Can be copied and modified for adding in extra information for drawing
-// including textures for texture mapping etc.
-struct basic_model {
-	GLuint shader = 0;
-	cgra::gl_mesh mesh;
-	glm::vec3 color{0.7};
-	glm::mat4 modelTransform{1.0};
-	GLuint texture;
-
-	void draw(const glm::mat4 &view, const glm::mat4 proj);
-};
+#include "terrainRenderer.hpp"
+#include "waterRenderer.hpp"
+#include "fogRenderer.hpp"
 
 
 // Main application class
@@ -47,8 +35,10 @@ private:
 	bool m_show_grid = false;
 	bool m_showWireframe = false;
 
-	// geometry
-	basic_model m_model;
+	// renderers
+	TerrainRenderer terrain_renderer;
+	WaterRenderer water_renderer;
+	FogRenderer fog_renderer;
 
 public:
 	// setup
