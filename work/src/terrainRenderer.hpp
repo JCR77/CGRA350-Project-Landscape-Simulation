@@ -43,4 +43,12 @@ public:
 	// rendering callbacks (every frame)
 	void render(const glm::mat4& view, const glm::mat4& proj);
 	void renderGUI();
+
+private:
+	//generate perlin noise
+	float perlinNoise(float x, float y);
+	glm::vec2 geCornerVector(int corner);
+	float fade(float t);
+	float lerp(float x, float p1, float p2);
+
 };

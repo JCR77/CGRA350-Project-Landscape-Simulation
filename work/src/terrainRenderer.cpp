@@ -47,6 +47,12 @@ TerrainRenderer::TerrainRenderer() {
 	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
 	m_model.color = vec3(0, 1, 0);
 	//	m_model.mesh.mode
+
+
+	//test perlin noise algorithm
+	for (float x = 0.0f; x <= 2; x += 0.1) {
+		printf("x = %.1f: noise = %.3f \n", x, perlinNoise(x, 0.5));
+	}
 }
 
 
@@ -67,3 +73,91 @@ void TerrainRenderer::renderGUI() {
 
 }
 
+
+float TerrainRenderer::perlinNoise(float x, float y) {
+	assert(x <= 255);
+	assert(y <= 255);
+
+	//generate permutation table
+	int p[] = { 151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,
+				103,30,69,142,8,99,37,240,21,10,23,190, 6,148,247,120,234,75,0,
+				26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,
+				87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
+				77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,
+				46,245,40,244,102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,
+				187,208, 89,18,169,200,196,135,130,116,188,159,86,164,100,109,
+				198,173,186, 3,64,52,217,226,250,124,123,5,202,38,147,118,126,
+				255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,
+				170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,
+				172,9,129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,
+				104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,
+				81,51,145,235,249,14,239,107,49,192,214, 31,181,199,106,157,184,
+				84,204,176,115,121,50,45,127, 4,150,254,138,236,205,93,222,114,
+				67,29,24,72,243,141,128,195,78,66,215,61,156,180 };
+
+	//get squate corner and point in square coords	
+	int X = (int)x; //square coords
+	int Y = (int)y;
+	float xf = x - X; //point in square coords
+	float yf = y - Y;
+
+	//get hash for each corner
+	int TR = p[(p[(X + 1) % 256] + Y + 1) % 256]; //top right
+	int TL = p[(p[X       % 256] + Y + 1) % 256]; //top left
+	int BR = p[(p[(X + 1) % 256] + Y)     % 256]; //bottom right
+	int BL = p[(p[X       % 256] + Y)     % 256]; //bottom left
+
+	//get const vector for each corner 
+	vec2 TR_ConstVec = geCornerVector(TR);
+	vec2 TL_ConstVec = geCornerVector(TL);
+	vec2 BR_ConstVec = geCornerVector(BR);
+	vec2 BL_ConstVec = geCornerVector(BL);
+
+	//get vertor to point for each corner
+	vec2 TR_VectorToPoint = vec2(xf - 1.0f, yf - 1.0f);
+	vec2 TL_VectorToPoint = vec2(xf,        yf - 1.0f);
+	vec2 BR_VectorToPoint = vec2(xf - 1.0f, yf);
+	vec2 BL_VectorToPoint = vec2(xf,		yf);
+
+	//get dot product for each corner
+	float TR_Val = dot(TR_ConstVec, TR_VectorToPoint);
+	float TL_Val = dot(TL_ConstVec, TL_VectorToPoint);
+	float BR_Val = dot(BR_ConstVec, BR_VectorToPoint);
+	float BL_Val = dot(BL_ConstVec, BL_VectorToPoint);
+
+	//get fade func of point in square
+	float u = fade(xf);
+	float v = fade(yf);
+
+	//interp to get result
+	float interpTop = lerp(u, TR_Val, TL_Val);
+	float interpBottom = lerp(u, BR_Val, BL_Val);
+	float result = lerp(v, interpTop, interpBottom); //between -1 and 1
+
+	return result;
+}
+
+//Gets the constant vector at a corner given its hash from the permutations table which can then be used to get the
+//dot product with the vector towards the point in the square. Does this by returning a different vector based on the
+//first 4 bits of the hash of the conter.
+//probably not as efficient as Perlin's grad() function but much easier to understand than a bunch of bit flipping.
+vec2 TerrainRenderer::geCornerVector(int corner) {
+	int hash = corner % 4;
+	switch (hash) {
+	case 0: return vec2(1.0f, 1.0f); break;
+	case 1: return vec2(-1.0f, 1.0f); break;
+	case 2: return vec2(-1.0f, -1.0f); break;
+	case 3: return vec2(1.0f, -1.0f); break;
+	default: return vec2(1); break; //should never happen
+	}
+}
+
+float TerrainRenderer::fade(float t) {
+	return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+float TerrainRenderer::lerp(float x, float p1, float p2) {
+	assert(x >= 0 && x <= 1);
+
+	return p1 + x * (p2 - p1);
+}
