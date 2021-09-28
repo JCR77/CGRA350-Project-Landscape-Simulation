@@ -35,7 +35,7 @@ void Application::render() {
 	glViewport(0, 0, width, height); // set the viewport to draw to the entire window
 
 	// clear the back-buffer
-	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
+	glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 	// enable flags for normal/forward rendering
@@ -58,8 +58,8 @@ void Application::render() {
 
 
 	// draw
-	terrain_renderer.render(view, proj);
-	water_renderer.render(view, proj);
+	//terrain_renderer.render(view, proj);
+	//water_renderer.render(view, proj);
 	fog_renderer.render(view, proj);
 }
 

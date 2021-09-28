@@ -50,7 +50,12 @@ FogRenderer::FogRenderer() {
 
 
 void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
-
+	//glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_ALPHA);
+	//float pixel[4];
+	//glReadPixels(100, 100, 1, 1, GL_RGBA, GL_FLOAT, &pixel);
+	//int bits = 0;
+	//glGetIntegerv(GL_ALPHA_BITS, &bits);
+	//printf("%f %f %f %f\n", pixel[0], pixel[1], pixel[2], pixel[3]);
 	// draw the model
 	m_model.draw(view, proj);
 }
