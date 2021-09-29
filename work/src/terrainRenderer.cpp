@@ -43,20 +43,51 @@ TerrainRenderer::TerrainRenderer() {
 	GLuint shader = sb.build();
 
 	m_model.shader = shader;
-	m_model.modelTransform = translate(mat4(1), vec3(10,10,0));
 	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
 	m_model.color = vec3(0, 1, 0);
 	//	m_model.mesh.mode
 
 
 	//test perlin noise algorithm
-	for (float x = 0.0f; x <= 2; x += 0.1) {
-		printf("x = %.1f: noise = %.3f \n", x, perlinNoise(x, 0.5));
+	for (int x = 1; x <= 30; x++) {
+		for (int y = 1; y < 30; y++) {
+
+			float noiseVal = perlinNoise(fmod(x * 0.05f, 256.0f), fmod(y * 0.05f, 256.0f));
+			int luminance = (int)((noiseVal / 2.0f + 1) * 255);
+
+			printf("%d, ", luminance);
+
+		}
+		printf("\n");
 	}
 }
 
 
+
+//--------------------------------------------------------------------------------
+// Rendering
+//--------------------------------------------------------------------------------
+
+
 void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
+
+	/*myTerrain_dataVector.clear();
+
+	for (int x = 0; x < m_windowsize.x; ++x) {
+		for (int y = 0; y < m_windowsize.y; ++y) {
+
+			float  noiseVal = perlinNoise(fmod(x * 0.01f, 256.0f), fmod(y * 0.01f, 256.0f));
+			float  luminance = ((noiseVal / 2.0f + 1.0f));
+
+			myTerrain_dataVector.push_back(luminance*255.0f);
+		}
+	}*/
+
+	//glRasterPos2i(0, 0);
+	//glDrawPixels(m_windowsize.x, m_windowsize.y, GL_LUMINANCE, GL_FLOAT, myTerrain_dataVector.data());
+
+	m_model.mesh = generatePlane(20, 10).build();
+	m_model.modelTransform = translate(mat4(1), vec3(-10, 0, -10));
 
 	// draw the model
 	m_model.draw(view, proj);
@@ -72,6 +103,12 @@ void TerrainRenderer::renderGUI() {
 	}
 
 }
+
+
+
+//--------------------------------------------------------------------------------
+// Perlin Noise
+//--------------------------------------------------------------------------------
 
 
 float TerrainRenderer::perlinNoise(float x, float y) {
@@ -161,3 +198,75 @@ float TerrainRenderer::lerp(float x, float p1, float p2) {
 
 	return p1 + x * (p2 - p1);
 }
+
+
+
+//--------------------------------------------------------------------------------
+// Generate Tererain
+//--------------------------------------------------------------------------------
+
+
+gl_mesh TerrainRenderer::generateTerrain(float width, float length, int numOctaves) {
+	return m_model.mesh;
+}
+
+
+mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) {
+
+	std::vector<vec3> vertices;
+	std::vector<int> indices;
+
+	float stepSize = size / numTrianglesAcross;
+
+	for (int x = 0; x <= numTrianglesAcross; x++) {
+		for (int y = 0; y <= numTrianglesAcross; y++) {
+			//make vertex
+			vertices.push_back(vec3(x*stepSize, 0, y*stepSize));
+
+			//make triangles (populate index buffer)
+			if (x < numTrianglesAcross && y < numTrianglesAcross) {
+				int currentIndex = x * (numTrianglesAcross+1) + y;
+
+				indices.push_back(currentIndex);
+				indices.push_back(currentIndex + 1);
+				indices.push_back(currentIndex + numTrianglesAcross+1);
+
+				indices.push_back(currentIndex + 1);
+				indices.push_back(currentIndex + numTrianglesAcross+1 + 1);
+				indices.push_back(currentIndex + numTrianglesAcross+1);
+			}
+		}
+	}
+
+	//make mesh
+	mesh_builder mb;
+
+	for (int i = 0; i < vertices.size(); i++) {
+		mb.push_vertex(mesh_vertex{
+						vertices[i], //point coordinates
+						vec3(0,1,0), //normal
+						vec2(0,0) }); //uv
+	}
+
+	for (int i = 0; i < indices.size(); i++) {
+		mb.push_index(indices[i]);
+	}
+
+	return mb;
+}
+
+
+float TerrainRenderer::fbmNoise(float x, float y, int numOctaves) {
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
