@@ -238,8 +238,15 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 		float noise = perlinNoise(fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f), fmod(plane_mb.vertices[i].pos.z * frequency, 256.0f));
 		plane_mb.vertices[i].pos.y = noise * scale;
 
-		if (plane_mb.vertices[i].pos.x * frequency >= 256.0f || plane_mb.vertices[i].pos.z * frequency >= 256.0f) {
-			printf("x=%.3f, y=%.3f \n", plane_mb.vertices[i].pos.x * frequency, plane_mb.vertices[i].pos.z * frequency);
+		//calc normals
+		int n = numTrianglesAcross + 1;
+		int x = i % n;
+		int y = (i-x) / n;
+		if (x > 0 && x < n && y > 0 && y < n) {			
+			float normX = plane_mb.vertices[i - 1].pos.y - plane_mb.vertices[i + 1].pos.y; //difference in height of previous vertex and next vertex along the z axis
+			float normZ = plane_mb.vertices[i - n].pos.y - plane_mb.vertices[i + n].pos.y; //difference in height of previous vertex and next vertex along the x axis
+
+			plane_mb.vertices[i].norm = normalize(vec3(normX, 2*scale, normZ));
 		}
 	}
 
@@ -250,18 +257,19 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) {
 
 	std::vector<vec3> vertices;
+	std::vector<vec3> normals;
 	std::vector<int> indices;
 
 	float stepSize = size / numTrianglesAcross;
 
-	for (int x = 0; x <= numTrianglesAcross; x++) {
-		for (int y = 0; y <= numTrianglesAcross; y++) {
+	for (int y = 0; y <= numTrianglesAcross; y++) {
+		for (int x = 0; x <= numTrianglesAcross; x++) {
 			//make vertex
 			vertices.push_back(vec3(x*stepSize, 0, y*stepSize));
 
 			//make triangles (populate index buffer)
 			if (x < numTrianglesAcross && y < numTrianglesAcross) {
-				int currentIndex = x * (numTrianglesAcross+1) + y;
+				int currentIndex = y * (numTrianglesAcross+1) + x;
 
 				indices.push_back(currentIndex);
 				indices.push_back(currentIndex + 1);
