@@ -35,6 +35,12 @@ private:
 	// geometry
 	basic_terrain_model m_model;
 
+
+	//UI
+	float scale = 20;
+	float frequency = 0.04;
+	//float resolution = 2;
+
 public:
 	// setup
 	TerrainRenderer();

@@ -101,12 +101,9 @@ void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 
 void TerrainRenderer::renderGUI() {
 
-	// example of how to use input boxes
-	static float exampleInput;
-	if (ImGui::InputFloat("example input", &exampleInput)) {
-		cout << "example input changed to " << exampleInput << endl;
-	}
-
+	ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f);
+	ImGui::SliderFloat("Frequency", &frequency, 0, 0.5, "%.2f");
+	//ImGui::SliderFloat("Resolution", &m_distance, 0, 100, "%.2f", 2.0f);
 }
 
 
@@ -231,8 +228,8 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 	
 	mesh_builder plane_mb = generatePlane(size, numTrianglesAcross);
 
-	float scale = 20;
-	float frequency = 0.04;
+	//float scale = 20;
+	//float frequency = 0.04;
 
 	for (int i = 0; i < plane_mb.vertices.size(); i++) {
 		float noise = perlinNoise(fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f), fmod(plane_mb.vertices[i].pos.z * frequency, 256.0f));
