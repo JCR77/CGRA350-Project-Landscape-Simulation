@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <algorithm>
+#include <random>
 
 // glm
 #include <glm/gtc/constants.hpp>
@@ -77,7 +79,12 @@ void TerrainRenderer::renderGUI() {
 	if (ImGui::SliderInt("Num Octaves", &numOctaves, 1, 8)) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	}
-	//ImGui::SliderFloat("Resolution", &m_distance, 0, 100, "%.2f", 2.0f);
+
+	if (ImGui::Button("New Seed")) {
+		genPermutations();
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+
 }
 
 
@@ -88,42 +95,19 @@ void TerrainRenderer::renderGUI() {
 
 
 float TerrainRenderer::perlinNoise(float x, float y) {
-	assert(x <= 255);
-	assert(y <= 255);
-
-	//generate permutation table
-	int p[] = { 151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,
-				103,30,69,142,8,99,37,240,21,10,23,190, 6,148,247,120,234,75,0,
-				26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,
-				87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
-				77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,
-				46,245,40,244,102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,
-				187,208, 89,18,169,200,196,135,130,116,188,159,86,164,100,109,
-				198,173,186, 3,64,52,217,226,250,124,123,5,202,38,147,118,126,
-				255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,
-				170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,
-				172,9,129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,
-				104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,
-				81,51,145,235,249,14,239,107,49,192,214, 31,181,199,106,157,184,
-				84,204,176,115,121,50,45,127, 4,150,254,138,236,205,93,222,114,
-				67,29,24,72,243,141,128,195,78,66,215,61,156,180 };
 
 	//get square corner and point in square coords	
-	int X = (int)x; //square coords
-	int Y = (int)y;
-	float xf = x - X; //point in square coords
-	float yf = y - Y;
-
-	//printf("\tX=%d, Y=%d\n", X, Y);
-	//printf("\txf=%.1f, yf=%.1f\n", xf, yf);
+	int X = (int)fmod(x, 256); //square coords
+	int Y = (int)fmod(y, 256);
+	float xf = fmod(x, 1.0f); //point in square coords
+	float yf = fmod(y, 1.0f);
 
 	//get hash for each corner
-	int TR = p[(p[(X + 1) % 256] + Y + 1) % 256]; //top right
-	int TL = p[(p[X       % 256] + Y + 1) % 256]; //top left
-	int BR = p[(p[(X + 1) % 256] + Y)     % 256]; //bottom right
-	int BL = p[(p[X       % 256] + Y)     % 256]; //bottom left
-
-	//printf("\tHashes: TR=%d, \tTL=%d, \tBR=%d, \tBL=%d\n", TR, TL, BR, BL);
+	//TODO double to table to don't need %256
+	int TR = permutations[(permutations[(X + 1) % 256] + Y + 1) % 256]; //top right
+	int TL = permutations[(permutations[X       % 256] + Y + 1) % 256]; //top left
+	int BR = permutations[(permutations[(X + 1) % 256] + Y)     % 256]; //bottom right
+	int BL = permutations[(permutations[X       % 256] + Y)     % 256]; //bottom left
 
 	//get const vector for each corner 
 	vec2 TR_ConstVec = getCornerVector(TR);
@@ -131,15 +115,11 @@ float TerrainRenderer::perlinNoise(float x, float y) {
 	vec2 BR_ConstVec = getCornerVector(BR);
 	vec2 BL_ConstVec = getCornerVector(BL);
 
-	//printf("\tCornerConstVec: TR=(%.2f,%.2f), \tTL=(%.2f,%.2f), \tBR=(%.2f,%.2f), \tBL=(%.2f,%.2f)\n", TR_ConstVec.x, TR_ConstVec.y, TL_ConstVec.x, TL_ConstVec.y, BR_ConstVec.x, BR_ConstVec.y, BL_ConstVec.x, BL_ConstVec.y);
-
 	//get vertor to point for each corner
 	vec2 TR_VectorToPoint = vec2(xf - 1.0f, yf - 1.0f);
 	vec2 TL_VectorToPoint = vec2(xf,        yf - 1.0f);
 	vec2 BR_VectorToPoint = vec2(xf - 1.0f, yf);
 	vec2 BL_VectorToPoint = vec2(xf,		yf);
-
-	//printf("\tVecToPoint: TR=(%.2f,%.2f), \tTL=(%.2f,%.2f), \tBR=(%.2f,%.2f), \tBL=(%.2f,%.2f)\n", TR_VectorToPoint.x, TR_VectorToPoint.y, TL_VectorToPoint.x, TL_VectorToPoint.y, BR_VectorToPoint.x, BR_VectorToPoint.y, BL_VectorToPoint.x, BL_VectorToPoint.y);
 
 	//get dot product for each corner
 	float TR_Val = dot(TR_ConstVec, TR_VectorToPoint);
@@ -147,21 +127,14 @@ float TerrainRenderer::perlinNoise(float x, float y) {
 	float BR_Val = dot(BR_ConstVec, BR_VectorToPoint);
 	float BL_Val = dot(BL_ConstVec, BL_VectorToPoint);
 
-	//printf("\tDots: TR=%.2f, \tTL=%.2f, \tBR=%.2f, \tBL=%.2f\n", TR_Val, TL_Val, BR_Val, BL_Val);
-
 	//get fade func of point in square
 	float u = fade(xf);
 	float v = fade(yf);
-
-	//printf("\tFade: u=%.2f, v=%.2f\n", u, v);
 
 	//interp to get result
 	float interpTop = lerp(u, TL_Val, TR_Val);
 	float interpBottom = lerp(u, BL_Val, BR_Val);
 	float result = lerp(v, interpBottom, interpTop); //between -1 and 1
-
-	//printf("\tLerp: top=%.2f, bottom=%.2f\n", interpTop, interpBottom);
-	//printf("\tResult = %.2f\n", result);
 
 	return result;
 }
@@ -189,6 +162,10 @@ float TerrainRenderer::lerp(float x, float p1, float p2) {
 	assert(x >= 0 && x <= 1);
 
 	return p1 + x * (p2 - p1);
+}
+
+void TerrainRenderer::genPermutations() {
+	std::shuffle(permutations, permutations + 256, default_random_engine());
 }
 
 
@@ -277,7 +254,7 @@ float TerrainRenderer::fbmNoise(float x, float y, int numOctaves) {
 
 	//fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f)
 	for (int i = 0; i < numOctaves; i++) {
-		float noise = perlinNoise(fmod(x*frequency*pow(2,i), 256), fmod(y*frequency*pow(2,i), 256)) / (float)pow(2, i);
+		float noise = perlinNoise(x*frequency*pow(2,i), y*frequency*pow(2,i)) / (float)pow(2, i);
 		Totalnoise += noise;
 	}
 
