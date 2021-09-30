@@ -49,7 +49,7 @@ TerrainRenderer::TerrainRenderer() {
 
 
 	//test perlin noise algorithm
-	for (int x = 1; x <= 30; x++) {
+	/*for (int x = 1; x <= 30; x++) {
 		for (int y = 1; y < 30; y++) {
 
 			float noiseVal = perlinNoise(fmod(x * 0.05f, 256.0f), fmod(y * 0.05f, 256.0f));
@@ -59,7 +59,24 @@ TerrainRenderer::TerrainRenderer() {
 
 		}
 		printf("\n");
-	}
+	}*/
+
+	/*for (int x = 0; x < 2; x++) {
+		for (int y = 0; y < 2; y++) {
+			printf("x=%.1f, y=%.1f\n", x+0.5, y+0.5);
+			perlinNoise(x+0.5, y+0.5);
+		}
+	}*/
+
+	printf("x=0.9, y=0.5\n");
+	perlinNoise(0.9, 0.5);
+
+	printf("x=1, y=0.5\n");
+	perlinNoise(1, 0.5);
+
+	printf("x=1.1, y=0.5\n");
+	perlinNoise(1.1, 0.5);
+
 }
 
 
@@ -71,23 +88,11 @@ TerrainRenderer::TerrainRenderer() {
 
 void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 
-	/*myTerrain_dataVector.clear();
+	float size = 100;
+	float squareSize = 0.5;
 
-	for (int x = 0; x < m_windowsize.x; ++x) {
-		for (int y = 0; y < m_windowsize.y; ++y) {
-
-			float  noiseVal = perlinNoise(fmod(x * 0.01f, 256.0f), fmod(y * 0.01f, 256.0f));
-			float  luminance = ((noiseVal / 2.0f + 1.0f));
-
-			myTerrain_dataVector.push_back(luminance*255.0f);
-		}
-	}*/
-
-	//glRasterPos2i(0, 0);
-	//glDrawPixels(m_windowsize.x, m_windowsize.y, GL_LUMINANCE, GL_FLOAT, myTerrain_dataVector.data());
-
-	m_model.mesh = generatePlane(20, 10).build();
-	m_model.modelTransform = translate(mat4(1), vec3(-10, 0, -10));
+	m_model.mesh = generateTerrain(size, size/squareSize, 1);
+	m_model.modelTransform = translate(mat4(1), vec3(-size/2, 0, -size/2));
 
 	// draw the model
 	m_model.draw(view, proj);
@@ -132,11 +137,14 @@ float TerrainRenderer::perlinNoise(float x, float y) {
 				84,204,176,115,121,50,45,127, 4,150,254,138,236,205,93,222,114,
 				67,29,24,72,243,141,128,195,78,66,215,61,156,180 };
 
-	//get squate corner and point in square coords	
+	//get square corner and point in square coords	
 	int X = (int)x; //square coords
 	int Y = (int)y;
 	float xf = x - X; //point in square coords
 	float yf = y - Y;
+
+	//printf("\tX=%d, Y=%d\n", X, Y);
+	//printf("\txf=%.1f, yf=%.1f\n", xf, yf);
 
 	//get hash for each corner
 	int TR = p[(p[(X + 1) % 256] + Y + 1) % 256]; //top right
@@ -144,11 +152,15 @@ float TerrainRenderer::perlinNoise(float x, float y) {
 	int BR = p[(p[(X + 1) % 256] + Y)     % 256]; //bottom right
 	int BL = p[(p[X       % 256] + Y)     % 256]; //bottom left
 
+	//printf("\tHashes: TR=%d, \tTL=%d, \tBR=%d, \tBL=%d\n", TR, TL, BR, BL);
+
 	//get const vector for each corner 
-	vec2 TR_ConstVec = geCornerVector(TR);
-	vec2 TL_ConstVec = geCornerVector(TL);
-	vec2 BR_ConstVec = geCornerVector(BR);
-	vec2 BL_ConstVec = geCornerVector(BL);
+	vec2 TR_ConstVec = getCornerVector(TR);
+	vec2 TL_ConstVec = getCornerVector(TL);
+	vec2 BR_ConstVec = getCornerVector(BR);
+	vec2 BL_ConstVec = getCornerVector(BL);
+
+	//printf("\tCornerConstVec: TR=(%.2f,%.2f), \tTL=(%.2f,%.2f), \tBR=(%.2f,%.2f), \tBL=(%.2f,%.2f)\n", TR_ConstVec.x, TR_ConstVec.y, TL_ConstVec.x, TL_ConstVec.y, BR_ConstVec.x, BR_ConstVec.y, BL_ConstVec.x, BL_ConstVec.y);
 
 	//get vertor to point for each corner
 	vec2 TR_VectorToPoint = vec2(xf - 1.0f, yf - 1.0f);
@@ -156,20 +168,29 @@ float TerrainRenderer::perlinNoise(float x, float y) {
 	vec2 BR_VectorToPoint = vec2(xf - 1.0f, yf);
 	vec2 BL_VectorToPoint = vec2(xf,		yf);
 
+	//printf("\tVecToPoint: TR=(%.2f,%.2f), \tTL=(%.2f,%.2f), \tBR=(%.2f,%.2f), \tBL=(%.2f,%.2f)\n", TR_VectorToPoint.x, TR_VectorToPoint.y, TL_VectorToPoint.x, TL_VectorToPoint.y, BR_VectorToPoint.x, BR_VectorToPoint.y, BL_VectorToPoint.x, BL_VectorToPoint.y);
+
 	//get dot product for each corner
 	float TR_Val = dot(TR_ConstVec, TR_VectorToPoint);
 	float TL_Val = dot(TL_ConstVec, TL_VectorToPoint);
 	float BR_Val = dot(BR_ConstVec, BR_VectorToPoint);
 	float BL_Val = dot(BL_ConstVec, BL_VectorToPoint);
 
+	//printf("\tDots: TR=%.2f, \tTL=%.2f, \tBR=%.2f, \tBL=%.2f\n", TR_Val, TL_Val, BR_Val, BL_Val);
+
 	//get fade func of point in square
 	float u = fade(xf);
 	float v = fade(yf);
 
+	//printf("\tFade: u=%.2f, v=%.2f\n", u, v);
+
 	//interp to get result
-	float interpTop = lerp(u, TR_Val, TL_Val);
-	float interpBottom = lerp(u, BR_Val, BL_Val);
-	float result = lerp(v, interpTop, interpBottom); //between -1 and 1
+	float interpTop = lerp(u, TL_Val, TR_Val);
+	float interpBottom = lerp(u, BL_Val, BR_Val);
+	float result = lerp(v, interpBottom, interpTop); //between -1 and 1
+
+	//printf("\tLerp: top=%.2f, bottom=%.2f\n", interpTop, interpBottom);
+	//printf("\tResult = %.2f\n", result);
 
 	return result;
 }
@@ -178,7 +199,7 @@ float TerrainRenderer::perlinNoise(float x, float y) {
 //dot product with the vector towards the point in the square. Does this by returning a different vector based on the
 //first 4 bits of the hash of the conter.
 //probably not as efficient as Perlin's grad() function but much easier to understand than a bunch of bit flipping.
-vec2 TerrainRenderer::geCornerVector(int corner) {
+vec2 TerrainRenderer::getCornerVector(int corner) {
 	int hash = corner % 4;
 	switch (hash) {
 	case 0: return vec2(1.0f, 1.0f); break;
@@ -206,8 +227,23 @@ float TerrainRenderer::lerp(float x, float p1, float p2) {
 //--------------------------------------------------------------------------------
 
 
-gl_mesh TerrainRenderer::generateTerrain(float width, float length, int numOctaves) {
-	return m_model.mesh;
+gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int numOctaves) {
+	
+	mesh_builder plane_mb = generatePlane(size, numTrianglesAcross);
+
+	float scale = 20;
+	float frequency = 0.04;
+
+	for (int i = 0; i < plane_mb.vertices.size(); i++) {
+		float noise = perlinNoise(fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f), fmod(plane_mb.vertices[i].pos.z * frequency, 256.0f));
+		plane_mb.vertices[i].pos.y = noise * scale;
+
+		if (plane_mb.vertices[i].pos.x * frequency >= 256.0f || plane_mb.vertices[i].pos.z * frequency >= 256.0f) {
+			printf("x=%.3f, y=%.3f \n", plane_mb.vertices[i].pos.x * frequency, plane_mb.vertices[i].pos.z * frequency);
+		}
+	}
+
+	return plane_mb.build();
 }
 
 

@@ -50,12 +50,12 @@ public:
 private:
 	//generate perlin noise
 	float perlinNoise(float x, float y);
-	glm::vec2 geCornerVector(int corner);
+	glm::vec2 getCornerVector(int corner);
 	float fade(float t);
 	float lerp(float x, float p1, float p2);
 
 	//generate terrain	
-	cgra::gl_mesh generateTerrain(float width, float length, int numOctaves);
+	cgra::gl_mesh generateTerrain(float size, int numTrianglesAcross, int numOctaves);
 	cgra::mesh_builder generatePlane(float size, int numTrianglesAcross);
 	float fbmNoise(float x, float y, int numOctaves);
 
