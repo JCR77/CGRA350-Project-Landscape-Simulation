@@ -41,6 +41,7 @@ private:
 	//UI
 	float scale = 20;
 	float frequency = 0.04;
+	int numOctaves = 3;
 	//float resolution = 2;
 
 public:

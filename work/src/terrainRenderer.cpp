@@ -46,7 +46,7 @@ TerrainRenderer::TerrainRenderer() {
 	m_model.color = vec3(0, 1, 0);
 
 	m_model.modelTransform = translate(mat4(1), vec3(-size / 2, 0, -size / 2));
-	m_model.mesh = generateTerrain(size, size / squareSize, 1);
+	m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	
 }
 
@@ -67,11 +67,15 @@ void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 void TerrainRenderer::renderGUI() {
 
 	if (ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f)) {
-		m_model.mesh = generateTerrain(size, size / squareSize, 1);
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	}
 
 	if (ImGui::SliderFloat("Frequency", &frequency, 0, 0.5, "%.2f")) {
-		m_model.mesh = generateTerrain(size, size / squareSize, 1);
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+
+	if (ImGui::SliderInt("Num Octaves", &numOctaves, 1, 8)) {
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	}
 	//ImGui::SliderFloat("Resolution", &m_distance, 0, 100, "%.2f", 2.0f);
 }
@@ -202,7 +206,8 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 	//float frequency = 0.04;
 
 	for (int i = 0; i < plane_mb.vertices.size(); i++) {
-		float noise = perlinNoise(fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f), fmod(plane_mb.vertices[i].pos.z * frequency, 256.0f));
+		//float noise = perlinNoise(fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f), fmod(plane_mb.vertices[i].pos.z * frequency, 256.0f));
+		float noise = fbmNoise(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves);
 		plane_mb.vertices[i].pos.y = noise * scale;
 
 		//calc normals
@@ -268,7 +273,15 @@ mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) 
 
 
 float TerrainRenderer::fbmNoise(float x, float y, int numOctaves) {
-	return 0;
+	float Totalnoise = 0;
+
+	//fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f)
+	for (int i = 0; i < numOctaves; i++) {
+		float noise = perlinNoise(fmod(x*frequency*pow(2,i), 256), fmod(y*frequency*pow(2,i), 256)) / (float)pow(2, i);
+		Totalnoise += noise;
+	}
+
+	return Totalnoise;
 }
 
 
