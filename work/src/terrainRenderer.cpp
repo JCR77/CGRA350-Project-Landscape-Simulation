@@ -43,40 +43,11 @@ TerrainRenderer::TerrainRenderer() {
 	GLuint shader = sb.build();
 
 	m_model.shader = shader;
-	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
 	m_model.color = vec3(0, 1, 0);
-	//	m_model.mesh.mode
 
-
-	//test perlin noise algorithm
-	/*for (int x = 1; x <= 30; x++) {
-		for (int y = 1; y < 30; y++) {
-
-			float noiseVal = perlinNoise(fmod(x * 0.05f, 256.0f), fmod(y * 0.05f, 256.0f));
-			int luminance = (int)((noiseVal / 2.0f + 1) * 255);
-
-			printf("%d, ", luminance);
-
-		}
-		printf("\n");
-	}*/
-
-	/*for (int x = 0; x < 2; x++) {
-		for (int y = 0; y < 2; y++) {
-			printf("x=%.1f, y=%.1f\n", x+0.5, y+0.5);
-			perlinNoise(x+0.5, y+0.5);
-		}
-	}*/
-
-	printf("x=0.9, y=0.5\n");
-	perlinNoise(0.9, 0.5);
-
-	printf("x=1, y=0.5\n");
-	perlinNoise(1, 0.5);
-
-	printf("x=1.1, y=0.5\n");
-	perlinNoise(1.1, 0.5);
-
+	m_model.modelTransform = translate(mat4(1), vec3(-size / 2, 0, -size / 2));
+	m_model.mesh = generateTerrain(size, size / squareSize, 1);
+	
 }
 
 
@@ -88,12 +59,6 @@ TerrainRenderer::TerrainRenderer() {
 
 void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 
-	float size = 100;
-	float squareSize = 0.5;
-
-	m_model.mesh = generateTerrain(size, size/squareSize, 1);
-	m_model.modelTransform = translate(mat4(1), vec3(-size/2, 0, -size/2));
-
 	// draw the model
 	m_model.draw(view, proj);
 }
@@ -101,8 +66,13 @@ void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 
 void TerrainRenderer::renderGUI() {
 
-	ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f);
-	ImGui::SliderFloat("Frequency", &frequency, 0, 0.5, "%.2f");
+	if (ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f)) {
+		m_model.mesh = generateTerrain(size, size / squareSize, 1);
+	}
+
+	if (ImGui::SliderFloat("Frequency", &frequency, 0, 0.5, "%.2f")) {
+		m_model.mesh = generateTerrain(size, size / squareSize, 1);
+	}
 	//ImGui::SliderFloat("Resolution", &m_distance, 0, 100, "%.2f", 2.0f);
 }
 

@@ -35,6 +35,8 @@ private:
 	// geometry
 	basic_terrain_model m_model;
 
+	float size = 100;
+	float squareSize = 0.5;
 
 	//UI
 	float scale = 20;
