@@ -8,6 +8,7 @@
 #include "application.hpp"
 #include "opengl.hpp"
 #include "cgra/cgra_gui.hpp"
+#include "cgra/cgra_shader.hpp"
 
 
 using namespace std;
@@ -33,6 +34,7 @@ namespace {
 // 
 int main() {
 
+	
 	// initialize the GLFW library
 	if (!glfwInit()) {
 		cerr << "Error: Could not initialize GLFW" << endl;
@@ -111,18 +113,117 @@ int main() {
 	Application application(window);
 	application_ptr = &application;
 
+	//More Dumb stuff
+	float quadVertices[] = { //Mesh used to get the image on screen
+	 // positions   // texCoords
+	 -1.0f,  1.0f,  0.0f, 1.0f,
+	 -1.0f, -1.0f,  0.0f, 0.0f,
+	  1.0f, -1.0f,  1.0f, 0.0f,
+
+	 -1.0f,  1.0f,  0.0f, 1.0f,
+	  1.0f, -1.0f,  1.0f, 0.0f,
+	  1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	unsigned int quadVAO, quadVBO;
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	//Shader for same as above
+	shader_builder sb;
+	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//framebuffer_vert.glsl"));
+	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//framebuffer_frag.glsl"));
+	GLuint shader = sb.build();
+
+
+	//Even more dumb stuff
+	unsigned int framebuffer;
+	glGenFramebuffers(1, &framebuffer);
+
+	unsigned int textureColorBuffer;
+	glGenTextures(1, &textureColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		cout << "its not complete lol" << "\n";
+	}
+		
+
+	/*int width = 800;
+	int height = 800;
+	//glfwGetFramebufferSize(glfwGetCurrentContext(), &width, &height);
+
+	
+
+	unsigned int framebufferTexture;
+	glGenTextures(1, &framebufferTexture);
+	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+
+	unsigned int RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+	cout << "weird";
+	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
+	{
+		cout << "Framebuffer error: " << fboStatus << endl;
+	}*/
+
 	// loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
-
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
 		// main Render
 		//glEnable(GL_FRAMEBUFFER_SRGB); // use if you know about gamma correction
 		application.render();
+
+		
 
 		// GUI Render on top
 		//glDisable(GL_FRAMEBUFFER_SRGB); // use if you know about gamma correction
 		cgra::gui::newFrame();
 		application.renderGUI();
 		cgra::gui::render();
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+
+		glUseProgram(shader);
+		glBindVertexArray(quadVAO);
+		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// swap front and back buffers
 		glfwSwapBuffers(window);

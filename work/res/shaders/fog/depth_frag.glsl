@@ -42,8 +42,8 @@ void main() {
 	vec3 color = mix(uColor / 4, uColor, light);
 
 	// output to the frambuffer
-	fb_color = vec4(color, 1);
-	//fb_color = vec4(vec3(linearizeDepth(gl_FragCoord.z) / far), 1.0f);
+	//fb_color = vec4(color, 1);
+	fb_color = vec4(vec3(linearizeDepth(gl_FragCoord.z) / far), 1.0f);
 	//float depth = logisticDepth(gl_FragCoord.z);
 	//fb_color = vec4(color, 1) * (1.0f - depth) + vec4(depth * vec3(0.85f,0.85f,0.90f), 1.0f);
 }

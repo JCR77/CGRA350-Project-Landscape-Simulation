@@ -31,6 +31,7 @@ private:
 
 	// geometry
 	basic_fog_model m_model;
+	basic_fog_model m_model2;
 
 public:
 	// setup

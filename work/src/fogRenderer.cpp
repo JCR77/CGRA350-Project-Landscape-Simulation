@@ -45,19 +45,17 @@ FogRenderer::FogRenderer() {
 	m_model.shader = shader;
 	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
 	m_model.color = vec3(1, 0, 0);
-	//	m_model.mesh.mode
+
+	
 }
 
 
 void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
-	//glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_ALPHA);
-	//float pixel[4];
-	//glReadPixels(100, 100, 1, 1, GL_RGBA, GL_FLOAT, &pixel);
-	//int bits = 0;
-	//glGetIntegerv(GL_ALPHA_BITS, &bits);
-	//printf("%f %f %f %f\n", pixel[0], pixel[1], pixel[2], pixel[3]);
-	// draw the model
 	m_model.draw(view, proj);
+	int w, h;
+	glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
+	//glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32F , w,  h, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	
 }
 
 
