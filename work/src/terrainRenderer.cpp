@@ -205,63 +205,37 @@ void TerrainRenderer::genPermutations() {
 gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int numOctaves) {
 	
 	//generate height map
-	//generate extra points along all sides to be used for calculating the normals
-	//vector<vector<float>> heightMap = vector<vector<float>>();
-	//float stepSize = size / numTrianglesAcross;
-	//for (int y = 0; y < numTrianglesAcross+1 + 2; y++) {
-	//	for (int x = 0; x < numTrianglesAcross+1 + 2; x++) {
-	//		if (fractalType == 0) {
-	//			heightMap[y][x] = homogeneousfbm(x * stepSize, y * stepSize, numOctaves);
-	//		}
-	//		else if (fractalType == 1) {
-	//			heightMap[y][x] = heterogeneousfbm(x * stepSize, y * stepSize, numOctaves) - 0.5f;
-	//		}
-	//		else {
-	//			heightMap[y][x] = hybridMultifractal(x * stepSize, y * stepSize, numOctaves) - 0.5f;
-	//		}
-	//	}
-	//}
+	//generate extra points along all sides for calculating the normals at the edges
+	vector<vector<float>> heightMap(numTrianglesAcross+3, vector<float>(numTrianglesAcross + 3, 0));
+	float stepSize = size / numTrianglesAcross;
+	for (int y = 0; y <= numTrianglesAcross + 2; y++) {
+		for (int x = 0; x <= numTrianglesAcross + 2; x++) {
+			if (fractalType == 0) {
+				heightMap[y][x] = homogeneousfbm(x * stepSize, y * stepSize, numOctaves);
+			}
+			else if (fractalType == 1) {
+				heightMap[y][x] = heterogeneousfbm(x * stepSize, y * stepSize, numOctaves) - 0.5f;
+			}
+			else {
+				heightMap[y][x] = hybridMultifractal(x * stepSize, y * stepSize, numOctaves) - 0.5f;
+			}
+		}
+	}
 
 	//generate mesh
 	mesh_builder plane_mb = generatePlane(size, numTrianglesAcross);
 
-	//for (int y = 1; y < numTrianglesAcross + 1; y++) {
-	//	for (int x = 1; x < numTrianglesAcross + 1; x++) {
-	//		int i = (y-1) * (x-1) + (x-1);
+	for (int y = 1; y <= numTrianglesAcross + 1; y++) {
+		for (int x = 1; x <= numTrianglesAcross + 1; x++) {
+			int i = (y-1) * (numTrianglesAcross+1) + (x-1);
 
-	//		plane_mb.vertices[i].pos.y = heightMap[y][x] * scale;
+			plane_mb.vertices[i].pos.y = heightMap[y][x] * scale;
 
-	//		//calc normal
-	//		float normX = heightMap[y][x-1] - heightMap[y][x + 1]; //difference in height of previous vertex and next vertex along the x axis
-	//		float normZ = heightMap[y-1][x] - heightMap[y+1][x]; //difference in height of previous vertex and next vertex along the z axis	
-	//		plane_mb.vertices[i].norm = normalize(vec3(normX, 2, normZ));
-	//	}
-	//}
-
-	for (int i = 0; i < plane_mb.vertices.size(); i++) {
-		//set vertex height
-		float noise = 0;
-		if (fractalType == 0) {
-			noise = homogeneousfbm(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves);
-		}else if(fractalType == 1){
-			noise = heterogeneousfbm(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves) - 0.5f;
-		} else {
-			noise = hybridMultifractal(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves) - 0.5f;
+			//calc normal
+			float normX = heightMap[y][x-1] - heightMap[y][x + 1]; //difference in height of previous vertex and next vertex along the x axis
+			float normZ = heightMap[y-1][x] - heightMap[y+1][x]; //difference in height of previous vertex and next vertex along the z axis	
+			plane_mb.vertices[i].norm = normalize(vec3(normX, 2, normZ));
 		}
-		plane_mb.vertices[i].pos.y = noise * scale;
-
-		//calc normal
-		int n = numTrianglesAcross + 1;
-		int x = i % n;
-		int y = (i-x) / n;
-		float normX;
-		float normZ;
-		if (x > 0 && x < n && y > 0 && y < n) {			
-			normX = plane_mb.vertices[i - 1].pos.y - plane_mb.vertices[i + 1].pos.y; //difference in height of previous vertex and next vertex along the z axis
-			normZ = plane_mb.vertices[i - n].pos.y - plane_mb.vertices[i + n].pos.y; //difference in height of previous vertex and next vertex along the x axis			
-		}
-
-		plane_mb.vertices[i].norm = normalize(vec3(normX, 2 * scale, normZ));
 	}
 
 	return plane_mb.build();
