@@ -72,16 +72,24 @@ void TerrainRenderer::renderGUI() {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	}
 
-	if (ImGui::SliderFloat("Frequency", &frequency, 0, 0.5, "%.2f")) {
+	if (ImGui::SliderFloat("Frequency", &frequency, 0, 0.2, "%.2f")) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	}
 
-	if (ImGui::SliderInt("Num Octaves", &numOctaves, 1, 8)) {
+	if (ImGui::SliderInt("Num Octaves", &numOctaves, 1, 10)) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	}
 
 	if (ImGui::Button("New Seed")) {
 		genPermutations();
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button(fractalTypeButtonText.c_str())) {
+		fractalType = (fractalType == 0) ? 1 : 0;
+		fractalTypeButtonText = (fractalType == 0) ? "Homogeneous fBm" : "Heterogeneous fBm";
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	}
 
@@ -165,6 +173,7 @@ float TerrainRenderer::lerp(float x, float p1, float p2) {
 }
 
 void TerrainRenderer::genPermutations() {
+	//shuffle the seed (permutation table)
 	std::shuffle(permutations, permutations + 256, default_random_engine());
 }
 
@@ -179,15 +188,17 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 	
 	mesh_builder plane_mb = generatePlane(size, numTrianglesAcross);
 
-	//float scale = 20;
-	//float frequency = 0.04;
-
 	for (int i = 0; i < plane_mb.vertices.size(); i++) {
-		//float noise = perlinNoise(fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f), fmod(plane_mb.vertices[i].pos.z * frequency, 256.0f));
-		float noise = fbmNoise(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves);
+		//set vertex height
+		float noise = 0;
+		if (fractalType == 0) {
+			noise = homogeneousfbmNoise(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves);
+		}else {
+			noise = heterogeneousfbmNoise(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves) - 0.5f;
+		}
 		plane_mb.vertices[i].pos.y = noise * scale;
 
-		//calc normals
+		//calc normal
 		int n = numTrianglesAcross + 1;
 		int x = i % n;
 		int y = (i-x) / n;
@@ -249,16 +260,49 @@ mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) 
 }
 
 
-float TerrainRenderer::fbmNoise(float x, float y, int numOctaves) {
-	float Totalnoise = 0;
+float TerrainRenderer::heterogeneousfbmNoise(float x, float y, int numOctaves) {
+	float CurrentHeight = 0;
+	float weight = 1.0f;
 
-	//fmod(plane_mb.vertices[i].pos.x * frequency, 256.0f)
+	//add multiple octaves (frequencies that are double the last frequancy and half the amptitude) together to make rough terrain.
+	//weight the amptitude of each frequqncy by the current height of the function to smooth out valleys.
 	for (int i = 0; i < numOctaves; i++) {
-		float noise = perlinNoise(x*frequency*pow(2,i), y*frequency*pow(2,i)) / (float)pow(2, i);
-		Totalnoise += noise;
+		float noise = perlinNoise(x*frequency*pow(2,i), y*frequency*pow(2,i));
+
+		//move range to [0..1] form [-1..1]
+		//means that adding octaves increases the height of mountains instead of just insreasing the roughness (average added height is positive instead of 0).
+		noise = (noise + 1) / 2.0f;
+		
+		//reduce amptitude of higher frequencies
+		noise /= (float)pow(2, i);
+
+		//scale by current height (to smooth valleys)
+		float scaledNoise = noise * weight;
+		
+		//add noise to current height function value
+		CurrentHeight += scaledNoise;
+
+		//get the new weight for the next octave
+		weight = fmin(1.0f, CurrentHeight);
 	}
 
-	return Totalnoise;
+	return CurrentHeight;
+}
+
+
+float TerrainRenderer::homogeneousfbmNoise(float x, float y, int numOctaves) {
+	float CurrentHeight = 0;
+
+	//add multiple octaves (frequencies that are double the last frequancy and half the amptitude) together to make rough terrain.
+	for (int i = 0; i < numOctaves; i++) {
+		float noise = perlinNoise(x * frequency * pow(2, i), y * frequency * pow(2, i)) / (float)pow(2, i);
+
+		//add noise to current height function value
+		CurrentHeight += noise;
+
+	}
+
+	return CurrentHeight;
 }
 
 

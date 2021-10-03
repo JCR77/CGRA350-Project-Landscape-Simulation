@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <string>
+
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -58,7 +60,9 @@ private:
 	float scale = 20;
 	float frequency = 0.04;
 	int numOctaves = 3;
-	//float resolution = 2;
+
+	int fractalType = 1; //0 = homogeneous,		1 = heterogeneous
+	std::string fractalTypeButtonText = "Heterogeneous fBm";
 
 public:
 	// setup
@@ -83,6 +87,7 @@ private:
 	//generate terrain	
 	cgra::gl_mesh generateTerrain(float size, int numTrianglesAcross, int numOctaves);
 	cgra::mesh_builder generatePlane(float size, int numTrianglesAcross);
-	float fbmNoise(float x, float y, int numOctaves);
+	float heterogeneousfbmNoise(float x, float y, int numOctaves);
+	float homogeneousfbmNoise(float x, float y, int numOctaves);
 
 };
