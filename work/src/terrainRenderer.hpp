@@ -58,11 +58,15 @@ private:
 
 	//UI
 	float scale = 20;
-	float frequency = 0.04;
+	float baseFrequency = 0.04;
 	int numOctaves = 3;
+	float frequencyMultiplier = 2;
+	float amtitudeMultiplier = 0.5;
 
-	int fractalType = 1; //0 = homogeneous,		1 = heterogeneous
-	std::string fractalTypeButtonText = "Heterogeneous fBm";
+	int fractalType = 1; //0 = normal terrain (homogeneous),		1 = smooth valleys (heterogeneous),		2 = Hybrid Multifractal
+
+	float offset = 0.7;
+	float H = 0.25;
 
 public:
 	// setup
@@ -87,7 +91,9 @@ private:
 	//generate terrain	
 	cgra::gl_mesh generateTerrain(float size, int numTrianglesAcross, int numOctaves);
 	cgra::mesh_builder generatePlane(float size, int numTrianglesAcross);
-	float heterogeneousfbmNoise(float x, float y, int numOctaves);
-	float homogeneousfbmNoise(float x, float y, int numOctaves);
+
+	float homogeneousfbm(float x, float y, int numOctaves);
+	float heterogeneousfbm(float x, float y, int numOctaves);
+	float hybridMultifractal(float x, float y, int numOctaves);
 
 };

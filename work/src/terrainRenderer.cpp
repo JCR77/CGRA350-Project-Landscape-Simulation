@@ -68,29 +68,47 @@ void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 
 void TerrainRenderer::renderGUI() {
 
-	if (ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f)) {
-		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
-	}
-
-	if (ImGui::SliderFloat("Frequency", &frequency, 0, 0.2, "%.2f")) {
-		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
-	}
-
-	if (ImGui::SliderInt("Num Octaves", &numOctaves, 1, 10)) {
-		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
-	}
-
+	//generated a new seed and terrain
 	if (ImGui::Button("New Seed")) {
 		genPermutations();
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
 	}
 
-	ImGui::SameLine();
-
-	if (ImGui::Button(fractalTypeButtonText.c_str())) {
-		fractalType = (fractalType == 0) ? 1 : 0;
-		fractalTypeButtonText = (fractalType == 0) ? "Homogeneous fBm" : "Heterogeneous fBm";
+	//chose terrain type
+	if (ImGui::Combo("Terrain Type", &fractalType, "Normal Terrain\0Smooth Valleys\0Hybrid Multifractal\0", 3)) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+
+	//terrain options 
+	if (ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f)) {
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+
+	if (ImGui::SliderFloat("Base Frequency", &baseFrequency, 0, 0.2, "%.3f")) {
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+
+	if (ImGui::SliderFloat("Frequency Multiplier", &frequencyMultiplier, 1, 5, "%.1f")) {
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+
+	if (ImGui::SliderFloat("Amptitude Multiplier", &amtitudeMultiplier, 0, 1, "%.2f")) {
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+
+	if (ImGui::SliderInt("Num Octaves", &numOctaves, 0, 10)) {
+		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	}
+	
+	//extra options for hybrid multifractal terrain type
+	if (fractalType == 2) {
+		if (ImGui::SliderFloat("Offset", &offset, -1, 1, "%.2f")) {
+			m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+		}
+
+		if (ImGui::SliderFloat("H", &H, 0, 1, "%.2f")) {
+			m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+		}
 	}
 
 }
@@ -186,15 +204,49 @@ void TerrainRenderer::genPermutations() {
 
 gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int numOctaves) {
 	
+	//generate height map
+	//generate extra points along all sides to be used for calculating the normals
+	//vector<vector<float>> heightMap = vector<vector<float>>();
+	//float stepSize = size / numTrianglesAcross;
+	//for (int y = 0; y < numTrianglesAcross+1 + 2; y++) {
+	//	for (int x = 0; x < numTrianglesAcross+1 + 2; x++) {
+	//		if (fractalType == 0) {
+	//			heightMap[y][x] = homogeneousfbm(x * stepSize, y * stepSize, numOctaves);
+	//		}
+	//		else if (fractalType == 1) {
+	//			heightMap[y][x] = heterogeneousfbm(x * stepSize, y * stepSize, numOctaves) - 0.5f;
+	//		}
+	//		else {
+	//			heightMap[y][x] = hybridMultifractal(x * stepSize, y * stepSize, numOctaves) - 0.5f;
+	//		}
+	//	}
+	//}
+
+	//generate mesh
 	mesh_builder plane_mb = generatePlane(size, numTrianglesAcross);
+
+	//for (int y = 1; y < numTrianglesAcross + 1; y++) {
+	//	for (int x = 1; x < numTrianglesAcross + 1; x++) {
+	//		int i = (y-1) * (x-1) + (x-1);
+
+	//		plane_mb.vertices[i].pos.y = heightMap[y][x] * scale;
+
+	//		//calc normal
+	//		float normX = heightMap[y][x-1] - heightMap[y][x + 1]; //difference in height of previous vertex and next vertex along the x axis
+	//		float normZ = heightMap[y-1][x] - heightMap[y+1][x]; //difference in height of previous vertex and next vertex along the z axis	
+	//		plane_mb.vertices[i].norm = normalize(vec3(normX, 2, normZ));
+	//	}
+	//}
 
 	for (int i = 0; i < plane_mb.vertices.size(); i++) {
 		//set vertex height
 		float noise = 0;
 		if (fractalType == 0) {
-			noise = homogeneousfbmNoise(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves);
-		}else {
-			noise = heterogeneousfbmNoise(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves) - 0.5f;
+			noise = homogeneousfbm(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves);
+		}else if(fractalType == 1){
+			noise = heterogeneousfbm(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves) - 0.5f;
+		} else {
+			noise = hybridMultifractal(plane_mb.vertices[i].pos.x, plane_mb.vertices[i].pos.z, numOctaves) - 0.5f;
 		}
 		plane_mb.vertices[i].pos.y = noise * scale;
 
@@ -202,12 +254,14 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 		int n = numTrianglesAcross + 1;
 		int x = i % n;
 		int y = (i-x) / n;
+		float normX;
+		float normZ;
 		if (x > 0 && x < n && y > 0 && y < n) {			
-			float normX = plane_mb.vertices[i - 1].pos.y - plane_mb.vertices[i + 1].pos.y; //difference in height of previous vertex and next vertex along the z axis
-			float normZ = plane_mb.vertices[i - n].pos.y - plane_mb.vertices[i + n].pos.y; //difference in height of previous vertex and next vertex along the x axis
-
-			plane_mb.vertices[i].norm = normalize(vec3(normX, 2*scale, normZ));
+			normX = plane_mb.vertices[i - 1].pos.y - plane_mb.vertices[i + 1].pos.y; //difference in height of previous vertex and next vertex along the z axis
+			normZ = plane_mb.vertices[i - n].pos.y - plane_mb.vertices[i + n].pos.y; //difference in height of previous vertex and next vertex along the x axis			
 		}
+
+		plane_mb.vertices[i].norm = normalize(vec3(normX, 2 * scale, normZ));
 	}
 
 	return plane_mb.build();
@@ -260,21 +314,37 @@ mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) 
 }
 
 
-float TerrainRenderer::heterogeneousfbmNoise(float x, float y, int numOctaves) {
+
+float TerrainRenderer::homogeneousfbm(float x, float y, int numOctaves) {
+	float CurrentHeight = 0;
+
+	//add multiple octaves (frequencies that are double the last frequancy and half the amptitude) together to make rough terrain.
+	for (int i = 0; i < numOctaves; i++) {
+		float noise = perlinNoise(x * baseFrequency * pow(frequencyMultiplier, i), y * baseFrequency * pow(frequencyMultiplier, i)) * (float)pow(amtitudeMultiplier, i);
+
+		//add noise to current height function value
+		CurrentHeight += noise;
+
+	}
+
+	return CurrentHeight;
+}
+
+float TerrainRenderer::heterogeneousfbm(float x, float y, int numOctaves) {
 	float CurrentHeight = 0;
 	float weight = 1.0f;
 
 	//add multiple octaves (frequencies that are double the last frequancy and half the amptitude) together to make rough terrain.
 	//weight the amptitude of each frequqncy by the current height of the function to smooth out valleys.
 	for (int i = 0; i < numOctaves; i++) {
-		float noise = perlinNoise(x*frequency*pow(2,i), y*frequency*pow(2,i));
+		float noise = perlinNoise(x*baseFrequency*pow(frequencyMultiplier,i), y*baseFrequency*pow(frequencyMultiplier,i));
 
 		//move range to [0..1] form [-1..1]
 		//means that adding octaves increases the height of mountains instead of just insreasing the roughness (average added height is positive instead of 0).
 		noise = (noise + 1) / 2.0f;
 		
 		//reduce amptitude of higher frequencies
-		noise /= (float)pow(2, i);
+		noise *= (float)pow(amtitudeMultiplier, i);
 
 		//scale by current height (to smooth valleys)
 		float scaledNoise = noise * weight;
@@ -289,21 +359,31 @@ float TerrainRenderer::heterogeneousfbmNoise(float x, float y, int numOctaves) {
 	return CurrentHeight;
 }
 
-
-float TerrainRenderer::homogeneousfbmNoise(float x, float y, int numOctaves) {
+float TerrainRenderer::hybridMultifractal(float x, float y, int numOctaves) {
 	float CurrentHeight = 0;
+	float weight = 1.0f;
+	float previousNoiseVal = 1.0f;
 
 	//add multiple octaves (frequencies that are double the last frequancy and half the amptitude) together to make rough terrain.
+	//weight the amptitude of each frequqncy by the current height of the function to smooth out valleys.
 	for (int i = 0; i < numOctaves; i++) {
-		float noise = perlinNoise(x * frequency * pow(2, i), y * frequency * pow(2, i)) / (float)pow(2, i);
+		float noise = (perlinNoise(x * baseFrequency * pow(frequencyMultiplier, i), y * baseFrequency * pow(frequencyMultiplier, i)) + offset) * pow(pow(amtitudeMultiplier, i), H);
+
+		//scale by current height (to smooth valleys)
+		float scaledNoise = noise * weight;
 
 		//add noise to current height function value
-		CurrentHeight += noise;
+		CurrentHeight += scaledNoise;
 
+		//get the new weight for the next octave
+		weight = fmin(1.0f, scaledNoise);
 	}
 
 	return CurrentHeight;
 }
+
+
+
 
 
 
