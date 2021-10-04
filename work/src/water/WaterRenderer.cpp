@@ -122,9 +122,9 @@ void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
 void WaterRenderer::renderGUI()
 {
     // example of how to use input boxes
-    static float exampleInput;
-    if (ImGui::InputFloat("example input", &exampleInput))
+    float height;
+    if (ImGui::SliderFloat("Height", &height, -10, 20))
     {
-        cout << "example input changed to " << exampleInput << endl;
+        water_.setHeight(height);
     }
 }

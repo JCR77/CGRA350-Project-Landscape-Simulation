@@ -24,6 +24,7 @@ public:
     void draw(const glm::mat4 &view, const glm::mat4 proj);
 
     float getHeight() const { return height_; }
+    void setHeight(float height);
 };
 
 // Basic model that holds the shader, mesh and transform for drawing.
