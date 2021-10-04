@@ -20,7 +20,11 @@ using namespace std;
 using namespace cgra;
 using namespace glm;
 
-Application::Application(GLFWwindow *window) : m_window(window) {}
+Application::Application(GLFWwindow *window) : m_window(window)
+{
+    terrain_renderer = new TerrainRenderer();
+    water_renderer = WaterRenderer(terrain_renderer, window);
+}
 
 void Application::render()
 {
@@ -31,7 +35,7 @@ void Application::render()
 
     m_windowsize = vec2(width, height); // update window size
     glViewport(0, 0, width, height);    // set the viewport to draw to the entire window
-    terrain_renderer.m_windowsize = m_windowsize;
+    terrain_renderer->m_windowsize = m_windowsize;
 
     m_windowsize = vec2(width, height); // update window size
     glViewport(0, 0, width, height);    // set the viewport to draw to the entire window
@@ -58,7 +62,7 @@ void Application::render()
     glPolygonMode(GL_FRONT_AND_BACK, (m_showWireframe) ? GL_LINE : GL_FILL);
 
     // draw
-    terrain_renderer.render(view, proj);
+    terrain_renderer->render(view, proj);
     water_renderer.render(view, proj);
     //fog_renderer.render(view, proj);
 }
@@ -90,7 +94,7 @@ void Application::renderGUI()
 
     if (ImGui::CollapsingHeader("Terrain"))
     {
-        terrain_renderer.renderGUI();
+        terrain_renderer->renderGUI();
     }
 
     if (ImGui::CollapsingHeader("Water"))

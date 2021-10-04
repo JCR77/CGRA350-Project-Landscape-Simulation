@@ -24,13 +24,14 @@ using namespace cgra;
 using namespace glm;
 
 
-void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj) {
+void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, const vec4 & clip_plane) {
 	mat4 modelview = view * modelTransform;
 
 	glUseProgram(shader); // load shader and variables
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
 	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
+	glUniform4fv(glGetUniformLocation(shader, "uClipPlane"), 1, value_ptr(clip_plane));
 
 	//drawCylinder();
 	mesh.draw(); // draw
@@ -59,10 +60,10 @@ TerrainRenderer::TerrainRenderer() {
 //--------------------------------------------------------------------------------
 
 
-void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
+void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj, const vec4& clip_plane) {
 
 	// draw the model
-	m_model.draw(view, proj);
+	m_model.draw(view, proj, clip_plane);
 }
 
 

@@ -6,10 +6,6 @@ set(sources
 
 	"WaterSurface.hpp"
 	"WaterSurface.cpp"
-
-	"WaterSurface.cpp"
-
-    "TemporaryTerrain.hpp"
 )
 
 # Add these sources to the project target

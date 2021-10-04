@@ -36,7 +36,7 @@ private:
     bool m_showWireframe = false;
 
     // renderers
-    TerrainRenderer terrain_renderer;
+    TerrainRenderer *terrain_renderer;
     WaterRenderer water_renderer;
     FogRenderer fog_renderer;
 

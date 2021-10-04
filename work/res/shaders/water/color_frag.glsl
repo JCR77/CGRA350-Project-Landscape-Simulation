@@ -22,5 +22,5 @@ void main() {
 	vec3 color = mix(uColor / 4, uColor, light);
 
 	// output to the frambuffer
-	fb_color = vec4(color, 1);
+	fb_color = vec4(color, 0.5);
 }
