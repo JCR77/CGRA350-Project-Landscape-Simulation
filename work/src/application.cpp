@@ -33,6 +33,7 @@ void Application::render() {
 
 	m_windowsize = vec2(width, height); // update window size
 	glViewport(0, 0, width, height); // set the viewport to draw to the entire window
+	terrain_renderer.m_windowsize = m_windowsize;
 
 	// clear the back-buffer
 	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
@@ -59,8 +60,8 @@ void Application::render() {
 
 	// draw
 	terrain_renderer.render(view, proj);
-	water_renderer.render(view, proj);
-	fog_renderer.render(view, proj);
+	//water_renderer.render(view, proj);
+	//fog_renderer.render(view, proj);
 }
 
 
