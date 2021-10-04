@@ -48,15 +48,43 @@ void WaterSurface::setHeight(float height)
     height_ = height;
 }
 
+void WaterSurface::setTextures(int refraction, int reflection)
+{
+    refraction_texture_ = refraction;
+    reflection_texture_ = reflection;
+
+    // bind to texture units
+    glUseProgram(shader_);
+    glUniform1i(glGetUniformLocation(shader_, "uRefraction"), TextureUnit::Refraction);
+    glUniform1i(glGetUniformLocation(shader_, "uReflection"), TextureUnit::Reflection);
+    // normal map
+    // distortion map
+    glUseProgram(0);
+}
+
 void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj)
 {
+    glUseProgram(shader_); // load shader and variables
+    glBindVertexArray(mesh_.vao);
+
+    // allow alpha blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // bind textures
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Refraction);
+    glBindTexture(GL_TEXTURE_2D, refraction_texture_);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Reflection);
+    glBindTexture(GL_TEXTURE_2D, reflection_texture_);
+
     // translate by height
     mat4 modelView = view * translate(mat4(1), vec3(0, height_, 0));
-
-    glUseProgram(shader_); // load shader and variables
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uProjectionMatrix"), 1, false, value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelViewMatrix"), 1, false, value_ptr(modelView));
     glUniform3fv(glGetUniformLocation(shader_, "uColor"), 1, value_ptr(colour_));
 
-    mesh_.draw(); // draw
+    glDrawElements(mesh_.mode, mesh_.index_count, GL_UNSIGNED_INT, 0);
+
+    glDisable(GL_BLEND);
+    glUseProgram(shader_); // load shader and variables
 }

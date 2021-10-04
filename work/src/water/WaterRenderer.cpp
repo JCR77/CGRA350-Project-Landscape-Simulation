@@ -23,18 +23,27 @@ using namespace glm;
 WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer, GLFWwindow *window)
     : window_(window), terrain_renderer_(terrain_renderer)
 {
-    water_ = WaterSurface(100, 0);
-
-    // todo bias?
-    refraction_plane_ = vec4(0, -1, 0, water_.getHeight());
-    reflection_plane_ = vec4(0, 1, 0, -water_.getHeight());
     // create fbos
     initFbos();
-    glEnable(GL_CLIP_PLANE0);
 
-    // allow alpha blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    water_ = WaterSurface(100, 0);
+    water_.setTextures(refraction_texture_, reflection_texture_);
+}
+
+vec4 WaterRenderer::getClipPlane(Type type)
+{
+    // todo bias?
+    if (type == Type::Refraction)
+    {
+        // clips everything above the water
+        return vec4(0, -1, 0, water_.getHeight());
+    }
+    else if (type == Type::Reflection)
+    {
+        // clips everything below the water
+        return vec4(0, 1, 0, -water_.getHeight());
+    }
+    return vec4(0);
 }
 
 /**
@@ -44,12 +53,12 @@ void WaterRenderer::initFbos()
 {
     glGenFramebuffers(1, &refraction_fbo_);
     glBindFramebuffer(GL_FRAMEBUFFER, refraction_fbo_);
-    generateColourTexture(Type::Refraction);
+    refraction_texture_ = generateColourTexture(Type::Refraction);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glGenFramebuffers(1, &reflection_fbo_);
     glBindFramebuffer(GL_FRAMEBUFFER, reflection_fbo_);
-    generateColourTexture(Type::Reflection);
+    reflection_texture_ = generateColourTexture(Type::Reflection);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // get current frame buffer size
@@ -81,12 +90,9 @@ int WaterRenderer::generateColourTexture(Type type)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // TODO?
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colour_texture, 0);
-    glDrawBuffer(GL_NONE);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -98,25 +104,39 @@ int WaterRenderer::generateColourTexture(Type type)
 
 void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
 {
+    glEnable(GL_CLIP_PLANE0);
     // position camera for reflection (make the terrain appear upside down)
-    mat4 reflection_view = scale(view, vec3(1, -1, 1));
+    mat4 scale = glm::scale(mat4(1), vec3(1, -1, 1));
+    mat4 translate = glm::translate(mat4(1), vec3(0, 2 * water_.getHeight(), 0));
+    mat4 reflection_view = view * translate * scale;
 
     // get current frame buffer size
     int width, height;
     glfwGetFramebufferSize(window_, &width, &height);
 
-    // render reflection to fbo
-    glBindFramebuffer(GL_FRAMEBUFFER, reflection_fbo_);
-    glViewport(0, 0, width / 2, height / 2); //TODO
-    terrain_renderer_->render(reflection_view, proj, reflection_plane_);
+    glEnable(GL_CULL_FACE);
 
+    glCullFace(GL_BACK);
+    // render reflection to fbo
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, reflection_fbo_);
+    glViewport(0, 0, width / 2, height / 2); //TODO
+    glClearColor(1, 1, 1, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    terrain_renderer_->render(reflection_view, proj, getClipPlane(Type::Reflection));
+
+    glCullFace(GL_FRONT);
     // render refraction to fbo
-    glBindFramebuffer(GL_FRAMEBUFFER, refraction_fbo_);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, refraction_fbo_);
     glViewport(0, 0, width, height); //TODO
-    terrain_renderer_->render(view, proj, refraction_plane_);
+    glClearColor(1, 1, 1, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    terrain_renderer_->render(view, proj, getClipPlane(Type::Refraction));
+    glDisable(GL_CULL_FACE);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width, height); //TODO
     water_.draw(view, proj);
+    glDisable(GL_CLIP_PLANE0);
 }
 
 void WaterRenderer::renderGUI()

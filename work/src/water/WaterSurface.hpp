@@ -6,7 +6,16 @@
 class WaterSurface
 {
 private:
+    enum TextureUnit : int
+    {
+        Refraction,
+        Reflection
+    };
+
     GLuint shader_ = 0;
+
+    // Textures
+    GLuint refraction_texture_, reflection_texture_;
 
     cgra::gl_mesh mesh_;
     glm::vec3 colour_{0, 0, 1}; // temp
@@ -25,11 +34,6 @@ public:
 
     float getHeight() const { return height_; }
     void setHeight(float height);
-};
 
-// Basic model that holds the shader, mesh and transform for drawing.
-// Can be copied and modified for adding in extra information for drawing
-// including textures for texture mapping etc.
-struct basic_water_model
-{
+    void setTextures(int refraction, int reflection);
 };

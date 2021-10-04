@@ -16,23 +16,16 @@ class WaterRenderer
 private:
     enum class Type
     {
-        Refraction,
-        Reflection
+        Reflection,
+        Refraction
     };
 
     WaterSurface water_;
 
     GLuint refraction_fbo_;
     GLuint reflection_fbo_;
-    GLuint refraction_texture;
+    GLuint refraction_texture_;
     GLuint reflection_texture_;
-
-    /* Clipping planes */
-
-    // clips everything above the water surface
-    glm::vec4 refraction_plane_;
-    // clips everything below the water surface
-    glm::vec4 reflection_plane_;
 
     // temp, use a pointer instead
     TerrainRenderer *terrain_renderer_;
@@ -41,6 +34,7 @@ private:
 
     void initFbos();
     int generateColourTexture(Type type);
+    glm::vec4 getClipPlane(Type type);
 
 public:
     WaterRenderer() = default;
