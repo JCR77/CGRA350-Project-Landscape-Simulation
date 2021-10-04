@@ -31,6 +31,10 @@ void Application::render()
 
     m_windowsize = vec2(width, height); // update window size
     glViewport(0, 0, width, height);    // set the viewport to draw to the entire window
+    terrain_renderer.m_windowsize = m_windowsize;
+
+    m_windowsize = vec2(width, height); // update window size
+    glViewport(0, 0, width, height);    // set the viewport to draw to the entire window
 
     // clear the back-buffer
     glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
@@ -54,9 +58,9 @@ void Application::render()
     glPolygonMode(GL_FRONT_AND_BACK, (m_showWireframe) ? GL_LINE : GL_FILL);
 
     // draw
-    // terrain_renderer.render(view, proj);
+    terrain_renderer.render(view, proj);
     water_renderer.render(view, proj);
-    // fog_renderer.render(view, proj);
+    //fog_renderer.render(view, proj);
 }
 
 void Application::renderGUI()
