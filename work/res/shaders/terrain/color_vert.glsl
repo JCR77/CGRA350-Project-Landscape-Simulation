@@ -4,6 +4,7 @@
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelViewMatrix;
 uniform vec3 uColor;
+uniform vec4 uClipPlane;
 
 // mesh data
 layout(location = 0) in vec3 aPosition;
@@ -18,6 +19,9 @@ out VertexData {
 } v_out;
 
 void main() {
+    // Calculates whether this vertex should be clipped or not
+    gl_ClipDistance[0] = dot(vec4(aPosition, 1), uClipPlane);
+
 	// transform vertex data to viewspace
 	v_out.position = (uModelViewMatrix * vec4(aPosition, 1)).xyz;
 	v_out.normal = normalize((uModelViewMatrix * vec4(aNormal, 0)).xyz);

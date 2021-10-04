@@ -22,7 +22,7 @@ struct basic_terrain_model {
 	glm::mat4 modelTransform{ 1.0 };
 	GLuint texture;
 
-	void draw(const glm::mat4& view, const glm::mat4 proj);
+	void draw(const glm::mat4& view, const glm::mat4 proj, const glm::vec4 &clip_plane);
 };
 
 
@@ -77,7 +77,7 @@ public:
 	TerrainRenderer& operator=(const TerrainRenderer&) = delete;
 
 	// rendering callbacks (every frame)
-	void render(const glm::mat4& view, const glm::mat4& proj);
+	void render(const glm::mat4& view, const glm::mat4& proj, const glm::vec4& clip_plane=glm::vec4(0.0));
 	void renderGUI();
 
 private:
