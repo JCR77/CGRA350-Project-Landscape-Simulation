@@ -62,9 +62,18 @@ void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 void FogRenderer::renderGUI() {
 
 	// example of how to use input boxes
-	static float exampleInput;
-	if (ImGui::InputFloat("example input", &exampleInput)) {
-		cout << "example input changed to " << exampleInput << endl;
+	ImGui::InputFloat("Near", &near);
+	ImGui::InputFloat("Far", &far);
+	if (ImGui::Button("Enable/Disable Fog")) 
+	{
+		if (state == 0.0f)
+		{
+			state = 1.0f;
+		}
+		else
+		{
+			state = 0.0f;
+		}
 	}
 }
 

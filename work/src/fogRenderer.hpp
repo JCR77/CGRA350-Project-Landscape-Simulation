@@ -44,4 +44,9 @@ public:
 	// rendering callbacks (every frame)
 	void render(const glm::mat4& view, const glm::mat4& proj);
 	void renderGUI();
+
+	//Variables
+	float state = 0.0f;
+	float near = 0.1f;
+	float far = 300.0f;
 };

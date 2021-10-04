@@ -33,8 +33,6 @@ namespace {
 // main program
 // 
 int main() {
-
-	
 	// initialize the GLFW library
 	if (!glfwInit()) {
 		cerr << "Error: Could not initialize GLFW" << endl;
@@ -107,7 +105,6 @@ int main() {
 	glfwSetScrollCallback(window, scrollCallback);
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetCharCallback(window, charCallback);
-
 	
 	// create the application object (and a global pointer to it)
 	Application application(window);
@@ -147,12 +144,10 @@ int main() {
 	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//framebuffer_frag.glsl"));
 	GLuint shader = sb.build();
 
-
 	//Even more dumb stuff
 	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
 
 	unsigned int textureColorBuffer;
 	glGenTextures(1, &textureColorBuffer);
@@ -173,19 +168,9 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	//Texture of rendered image should now be created
 
-	//Stuff below might be a problem?
-	/*unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);*/
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -194,6 +179,16 @@ int main() {
 
 	// loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
+		//Fix to get correct window size
+		glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
+
+		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+		glBindTexture(GL_TEXTURE_2D, depthBuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+		//The usual
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -207,6 +202,11 @@ int main() {
 		
 		glUniform1i(glGetUniformLocation(shader, "screenTexture"),0);
 		glUniform1i(glGetUniformLocation(shader, "screenTexture2"), 1);
+
+		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer.near);
+		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer.far);
+
+		glUniform1f(glGetUniformLocation(shader, "state"), application.fog_renderer.state);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureColorBuffer); // color attachment texture
@@ -230,39 +230,6 @@ int main() {
 
 		// poll for and process events
 		glfwPollEvents();
-
-		/*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
-		// main Render
-		//glEnable(GL_FRAMEBUFFER_SRGB); // use if you know about gamma correction
-		application.render();
-
-	
-		// GUI Render on top
-		//glDisable(GL_FRAMEBUFFER_SRGB); // use if you know about gamma correction
-		cgra::gui::newFrame();
-		application.renderGUI();
-		cgra::gui::render();
-
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
-
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-
-		glUseProgram(shader);
-		glBindVertexArray(quadVAO);
-		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-		//glActiveTexture(GL_TEXTURE);
-		//glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		// swap front and back buffers
-		glfwSwapBuffers(window);
-
-		// poll for and process events
-		glfwPollEvents();*/
 	}
 
 	// clean up ImGui

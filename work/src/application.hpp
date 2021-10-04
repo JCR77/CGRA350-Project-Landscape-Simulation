@@ -38,7 +38,6 @@ private:
 	// renderers
 	TerrainRenderer terrain_renderer;
 	WaterRenderer water_renderer;
-	FogRenderer fog_renderer;
 
 public:
 	// setup
@@ -58,4 +57,7 @@ public:
 	void scrollCallback(double xoffset, double yoffset);
 	void keyCallback(int key, int scancode, int action, int mods);
 	void charCallback(unsigned int c);
+
+	//Renderers
+	FogRenderer fog_renderer;
 };

@@ -5,47 +5,64 @@ in vec2 TexCoords;
 
 uniform sampler2D screenTexture;
 uniform sampler2D screenTexture2;
+uniform float near;
+uniform float far;
+uniform float state;
 
+uniform mat4 uProjectionMatrix;
+uniform mat4 uModelViewMatrix;
+uniform vec3 uColor;
 
-const float offset_x = 1.0f / 800.0f;
-const float offset_y = 1.0f / 600.0f;
+vec3 cIn;
 
-
-vec2 offsets[9] = vec2[]
-(
-    vec2(-offset_x,offset_y),vec2(0.0f,offset_y),vec2(offset_x,offset_y),
-    vec2(-offset_x,0.0f),vec2(0.0f,0.0f),vec2(offset_x,0.0f),
-    vec2(-offset_x,-offset_y),vec2(0.0f,-offset_y),vec2(offset_x,-offset_y)
-);
-
-float kernel[9] = float[]
-(
-    1,1,1,
-    1,-8,1,
-    1,1,1
-
-);
-
-float near = 0.1f;
-float far = 100.0f;
+// viewspace data (this must match the output of the fragment shader)
+in VertexData {
+	vec3 position;
+	vec3 normal;
+	vec2 textureCoord;
+} f_in;
 
 float linearizeDepth(float depth)
 {
 	return (2.0 * near * far) / (far + near - (depth * 2.0 - 1.0) * (far - near));
 }
 
+float steepness = 0.5f;
+float offset = 5.0f;
+
+float logisticDepth(float depth)
+{
+    float zVal = linearizeDepth(depth);
+    return (1 / (1 + exp(-steepness * (zVal - offset))));
+
+}
+
 void main()
 {
-    //vec3 col = texture(screenTexture, TexCoords).rgb;
-    //FragColor = vec4(col, 1.0);
-    //vec3 col = vec3(texture(screenTexture, TexCoords.st));
-    //float depth          = texture(screenTexture, TexCoords.st).r;
-    //vec3  depthGrayscale = vec3( depth );
-    //for(int i = 0; i < 9; i++)
-    //{
-    //    col += vec3(texture(screenTexture, TexCoords.st + offsets[i])) * kernel[i];
-    //}
-    //FragColor = vec4(1 - depthGrayscale, 1.0f);
-    //FragColor = vec4(col, 1.0f);
-    FragColor = vec4(vec3(linearizeDepth(texture(screenTexture2, TexCoords.st).r) / far), 1.0f);
-} 
+
+    //Original Output
+    //FragColor = vec4(texture(screenTexture, TexCoords).rgb,1);
+    cIn = texture(screenTexture, TexCoords).rgb;
+
+
+    //Fake Fog
+    //float depth = logisticDepth(texture(screenTexture2, TexCoords.st).r);
+    //FragColor = vec4(cIn, 1.0f) * (1.0f - depth) + vec4(depth * vec3(0.85f,0.85f,0.90f) , 1.0f);
+
+    //Depthmap(Linear Version)
+    //FragColor = vec4(vec3(linearizeDepth(texture(screenTexture2, TexCoords.st).r) / far), 1.0f);
+
+    //Final Output
+    //FragColor = f() * cIn + (1 - f()) * cFog;
+
+    if(state >= 1.0f)
+    {
+        float depth = logisticDepth(texture(screenTexture2, TexCoords.st).r);
+        FragColor = vec4(cIn, 1.0f) * (1.0f - depth) + vec4(depth * vec3(0.85f,0.85f,0.90f) , 1.0f);
+    }
+    else
+    {
+        FragColor = vec4(texture(screenTexture, TexCoords).rgb,1);
+    }
+    
+}
