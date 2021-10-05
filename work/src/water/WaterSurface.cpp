@@ -38,8 +38,8 @@ WaterSurface::WaterSurface(float size, float height) : height_(height)
 
     // set shader
     shader_builder sb;
-    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//water//color_vert.glsl"));
-    sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//water//color_frag.glsl"));
+    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//water//water_vert.glsl"));
+    sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//water//water_frag.glsl"));
     shader_ = sb.build();
 }
 
@@ -78,9 +78,10 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj)
     glBindTexture(GL_TEXTURE_2D, reflection_texture_);
 
     // translate by height
-    mat4 modelView = view * translate(mat4(1), vec3(0, height_, 0));
+    mat4 transform = translate(mat4(1), vec3(0, height_, 0));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uProjectionMatrix"), 1, false, value_ptr(proj));
-    glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelViewMatrix"), 1, false, value_ptr(modelView));
+    glUniformMatrix4fv(glGetUniformLocation(shader_, "uViewMatrix"), 1, false, value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelMatrix"), 1, false, value_ptr(transform));
     glUniform3fv(glGetUniformLocation(shader_, "uColor"), 1, value_ptr(colour_));
 
     glDrawElements(mesh_.mode, mesh_.index_count, GL_UNSIGNED_INT, 0);

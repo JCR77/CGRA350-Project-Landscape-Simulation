@@ -3,6 +3,7 @@
 
 # Builds
 Build/*
+build/
 
 **/.DS_Store
 .vscode/

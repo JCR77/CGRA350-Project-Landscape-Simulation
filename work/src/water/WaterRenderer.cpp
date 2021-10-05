@@ -59,6 +59,8 @@ void WaterRenderer::initFbos()
     glGenFramebuffers(1, &reflection_fbo_);
     glBindFramebuffer(GL_FRAMEBUFFER, reflection_fbo_);
     reflection_texture_ = generateColourTexture(Type::Reflection);
+
+    // reflection needs depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // get current frame buffer size
@@ -81,6 +83,13 @@ int WaterRenderer::generateColourTexture(Type type)
     {
         width /= 2;
         height /= 2;
+
+        // reflection needs depth buffer
+        GLuint depth_buffer;
+        glGenRenderbuffers(1, &depth_buffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
     }
 
     GLuint colour_texture;
@@ -115,28 +124,28 @@ void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
     glfwGetFramebufferSize(window_, &width, &height);
 
     glEnable(GL_CULL_FACE);
-
     glCullFace(GL_BACK);
+
     // render reflection to fbo
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, reflection_fbo_);
-    glViewport(0, 0, width / 2, height / 2); //TODO
+    glBindFramebuffer(GL_FRAMEBUFFER, reflection_fbo_);
     glClearColor(1, 1, 1, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, width / 2, height / 2); //TODO
     terrain_renderer_->render(reflection_view, proj, getClipPlane(Type::Reflection));
 
     glCullFace(GL_FRONT);
     // render refraction to fbo
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, refraction_fbo_);
-    glViewport(0, 0, width, height); //TODO
+    glBindFramebuffer(GL_FRAMEBUFFER, refraction_fbo_);
     glClearColor(1, 1, 1, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, width, height); //TODO
     terrain_renderer_->render(view, proj, getClipPlane(Type::Refraction));
     glDisable(GL_CULL_FACE);
+    glDisable(GL_CLIP_PLANE0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width, height); //TODO
     water_.draw(view, proj);
-    glDisable(GL_CLIP_PLANE0);
 }
 
 void WaterRenderer::renderGUI()
