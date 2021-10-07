@@ -6,6 +6,9 @@
 #include "../opengl.hpp"
 #include "../cgra/cgra_mesh.hpp"
 
+/**
+ * https://learnopengl.com/Advanced-OpenGL/Cubemaps
+ */
 class SkyBox
 {
 private:

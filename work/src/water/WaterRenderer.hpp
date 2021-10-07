@@ -24,6 +24,7 @@ private:
     bool show_sky_ = true;
 
     WaterSurface water_;
+    float water_height_ = 5.0;
     SkyBox sky_;
 
     GLuint refraction_fbo_;

@@ -9,13 +9,15 @@ private:
     enum TextureUnit : int
     {
         Refraction,
-        Reflection
+        Reflection,
+        NormalMap,
+        DudvMap,
     };
 
     GLuint shader_ = 0;
 
     // Textures
-    GLuint refraction_texture_, reflection_texture_;
+    GLuint refraction_texture_, reflection_texture_, normal_map_, dudv_map_;
 
     cgra::gl_mesh mesh_;
     glm::vec3 colour_{0, 0, 1}; // temp

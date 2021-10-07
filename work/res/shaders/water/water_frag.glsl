@@ -4,6 +4,8 @@
 uniform vec3 uColor;
 uniform sampler2D uRefraction;
 uniform sampler2D uReflection;
+uniform sampler2D uNormalMap;
+uniform sampler2D uDudvMap;
 
 in VertexData {
 	vec2 textureCoord;
@@ -32,12 +34,18 @@ void main() {
     vec4 reflectionColour = texture(uReflection, uv);
 
     vec3 toEye = normalize(-f_in.position);
-    vec3 normal = normalize(f_in.normal);
+    // get normal from normal map
+    vec3 normal = texture(uNormalMap, f_in.textureCoord).xyz;
+    // map x and z current range of [0, 1] to [-1, 1],
+    // and scale y, to get more normals facing upward
+    normal = vec3(normal.x * 2 - 1, normal.y * 8, normal.z * 2 - 1);
+    normal = normalize(normal);
+    // normal = normalize(f_in.normal);
 
     // fresnel effect
     float fBias = 0.20373;
     float facing = 1.0 - max(dot(toEye, normal), 0);
-    float weight = max(fBias + (1.0 - fBias) * pow(facing, 1), 0);
+    float weight = max(fBias + (1.0 - fBias) * pow(facing, 2), 0);
 
     // mix refraction and reflection textures using fresnel effect
     vec3 colour = mix(refractionColour, reflectionColour, weight).xyz;
@@ -45,7 +53,7 @@ void main() {
     // colour = mix(colour, vec3(0.0, 1, 1), 0.1).xyz;
 
 	/* calculate specular lighting */
-    float specularStrength = 0.5;
+    float specularStrength = 0.4;
     vec3 reflectDirection = reflect(-f_in.lightDirection, normal);
     float spec = pow(max(dot(toEye, reflectDirection), 0.0), 32);
     vec3 specular = specularStrength * spec * lightColour;
@@ -54,5 +62,4 @@ void main() {
 
 	// output to the frambuffer
 	fb_color = vec4(colour, 1.0);
-	// fb_color = reflectionColour;
 }

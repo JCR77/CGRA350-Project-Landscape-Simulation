@@ -23,7 +23,7 @@ private:
 
     // oribital camera
     float m_pitch = .35;
-    float m_yaw = -1.33;
+    float m_yaw = 0;
     float m_distance = 85.46;
 
     // last input

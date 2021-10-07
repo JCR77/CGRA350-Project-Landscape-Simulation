@@ -27,7 +27,7 @@ WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer, GLFWwindow *wind
     // create fbos
     initFbos();
 
-    water_ = WaterSurface(100, 0);
+    water_ = WaterSurface(100, water_height_);
     water_.setTextures(refraction_texture_, reflection_texture_);
 
     sky_ = SkyBox(200.f, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"});
@@ -104,7 +104,6 @@ int WaterRenderer::generateColourTexture(Type type)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    // TODO?
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colour_texture, 0);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -177,10 +176,9 @@ void WaterRenderer::renderReflection(const glm::mat4 &view, const glm::mat4 &pro
 void WaterRenderer::renderGUI()
 {
     // example of how to use input boxes
-    float height;
-    if (ImGui::SliderFloat("Height", &height, -10, 20))
+    if (ImGui::SliderFloat("Height", &water_height_, -10, 20, "%.3f"))
     {
-        water_.setHeight(height);
+        water_.setHeight(water_height_);
     }
     ImGui::Checkbox("Show sky", &show_sky_);
 }

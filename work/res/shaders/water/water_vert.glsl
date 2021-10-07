@@ -21,7 +21,7 @@ out VertexData {
     vec3 lightDirection;
 } v_out;
 
-const vec4 lightDirection = vec4(10, 50, 50, 0);
+const vec4 lightDirection = vec4(0, 40, -100, 0);
 
 void main() {
     mat4 modelView = uViewMatrix * uModelMatrix;

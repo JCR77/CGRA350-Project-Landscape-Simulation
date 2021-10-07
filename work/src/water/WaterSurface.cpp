@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "../cgra/cgra_shader.hpp"
+#include "../cgra/cgra_image.hpp"
 
 using namespace cgra;
 using namespace std;
@@ -53,11 +54,16 @@ void WaterSurface::setTextures(int refraction, int reflection)
     refraction_texture_ = refraction;
     reflection_texture_ = reflection;
 
+    normal_map_ = rgba_image(CGRA_SRCDIR + string("/res/textures/normal_map.png")).uploadTexture();
+    dudv_map_ = rgba_image(CGRA_SRCDIR + string("/res/textures/dudv_map.png")).uploadTexture();
+
     // bind to texture units
     glUseProgram(shader_);
     glUniform1i(glGetUniformLocation(shader_, "uRefraction"), TextureUnit::Refraction);
     glUniform1i(glGetUniformLocation(shader_, "uReflection"), TextureUnit::Reflection);
-    // normal map
+    glUniform1i(glGetUniformLocation(shader_, "uNormalMap"), TextureUnit::NormalMap);
+    glUniform1i(glGetUniformLocation(shader_, "uDudvMap"), TextureUnit::DudvMap);
+
     // distortion map
     glUseProgram(0);
 }
@@ -76,6 +82,10 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj)
     glBindTexture(GL_TEXTURE_2D, refraction_texture_);
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Reflection);
     glBindTexture(GL_TEXTURE_2D, reflection_texture_);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::NormalMap);
+    glBindTexture(GL_TEXTURE_2D, normal_map_);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::DudvMap);
+    glBindTexture(GL_TEXTURE_2D, dudv_map_);
 
     // translate by height
     mat4 transform = translate(mat4(1), vec3(0, height_, 0));
