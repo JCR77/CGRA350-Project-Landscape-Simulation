@@ -10,6 +10,7 @@
 
 // project
 #include "WaterRenderer.hpp"
+#include "SkyBox.hpp"
 #include "../cgra/cgra_geometry.hpp"
 #include "../cgra/cgra_gui.hpp"
 #include "../cgra/cgra_image.hpp"
@@ -28,6 +29,9 @@ WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer, GLFWwindow *wind
 
     water_ = WaterSurface(100, 0);
     water_.setTextures(refraction_texture_, reflection_texture_);
+
+    // sky_ = SkyBox(10.f, {"right.png", "left.png", "top.png", "bottom.png", "front.png", "back.png"});
+    sky_ = SkyBox(500, {"checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg"});
 }
 
 vec4 WaterRenderer::getClipPlane(Type type)
@@ -113,6 +117,7 @@ int WaterRenderer::generateColourTexture(Type type)
 
 void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
 {
+    sky_.draw(view, proj);
     glEnable(GL_CLIP_PLANE0);
     // position camera for reflection (make the terrain appear upside down)
     mat4 scale = glm::scale(mat4(1), vec3(1, -1, 1));

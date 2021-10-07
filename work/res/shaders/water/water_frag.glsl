@@ -19,7 +19,7 @@ const vec3 lightColour = vec3(1, 1, 1);
 out vec4 fb_color;
 
 /**
-* Calculcations done in view space
+* Calculations done in view space
 */
 void main() {
     // map clip space coordinates to uv

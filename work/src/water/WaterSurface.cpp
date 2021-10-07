@@ -87,5 +87,5 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj)
     glDrawElements(mesh_.mode, mesh_.index_count, GL_UNSIGNED_INT, 0);
 
     glDisable(GL_BLEND);
-    glUseProgram(shader_); // load shader and variables
+    glUseProgram(0);
 }

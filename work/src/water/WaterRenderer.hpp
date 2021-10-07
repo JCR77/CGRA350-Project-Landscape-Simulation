@@ -9,6 +9,7 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
 #include "WaterSurface.hpp"
+#include "SkyBox.hpp"
 #include "../terrainRenderer.hpp"
 
 class WaterRenderer
@@ -21,6 +22,7 @@ private:
     };
 
     WaterSurface water_;
+    SkyBox sky_;
 
     GLuint refraction_fbo_;
     GLuint reflection_fbo_;
