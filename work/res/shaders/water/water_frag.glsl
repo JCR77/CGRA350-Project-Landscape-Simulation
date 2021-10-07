@@ -28,7 +28,7 @@ void main() {
     vec2 uv = projectedCoords * 0.5 + 0.5;
 
     vec4 refractionColour = texture(uRefraction, uv);
-    refractionColour = mix(refractionColour, vec4(0, 1, 1, 1), 0.5);
+    // refractionColour = mix(refractionColour, vec4(0, 1, 1, 1), 0.5);
     vec4 reflectionColour = texture(uReflection, uv);
 
     vec3 toEye = normalize(-f_in.position);

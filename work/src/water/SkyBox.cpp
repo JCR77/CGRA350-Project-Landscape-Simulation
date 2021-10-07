@@ -1,7 +1,10 @@
 #include "SkyBox.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include "../cgra/cgra_image.hpp"
 #include "../cgra/cgra_shader.hpp"
@@ -35,9 +38,17 @@ void SkyBox::draw(const mat4 &view, const mat4 &proj)
 {
     glUseProgram(shader_); // load shader and variables
 
+    vec3 v;
+    vec4 v4;
+    vec3 scale;
+    quat rotation;
+    glm::decompose(view, scale, rotation, v, v, v4);
+    mat4 rot_view = mat4_cast(rotation) * glm::scale(mat4(1), scale);
+
+    // model = transform_;
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture_);
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uProjectionMatrix"), 1, false, value_ptr(proj));
-    glUniformMatrix4fv(glGetUniformLocation(shader_, "uViewMatrix"), 1, false, value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shader_, "uViewMatrix"), 1, false, value_ptr(rot_view));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelMatrix"), 1, false, value_ptr(transform_));
     mesh_.draw();
 

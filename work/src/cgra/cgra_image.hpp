@@ -80,15 +80,14 @@ namespace cgra
             {
                 rgba_image img = rgba_image(file_names.at(i));
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-                             GL_RGB, img.size.x, img.size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, img.data.data());
+                             GL_RGBA, img.size.x, img.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.data.data());
             }
 
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            glGenerateMipmap(GL_TEXTURE_CUBE_MAP); // todo?
+            // glGenerateMipmap(GL_TEXTURE_CUBE_MAP); // todo?
             return tex;
         }
 

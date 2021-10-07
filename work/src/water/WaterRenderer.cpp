@@ -30,8 +30,8 @@ WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer, GLFWwindow *wind
     water_ = WaterSurface(100, 0);
     water_.setTextures(refraction_texture_, reflection_texture_);
 
-    // sky_ = SkyBox(10.f, {"right.png", "left.png", "top.png", "bottom.png", "front.png", "back.png"});
-    sky_ = SkyBox(500, {"checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg"});
+    sky_ = SkyBox(200.f, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"});
+    // sky_ = SkyBox(500, {"checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg", "checkerboard.jpg"});
 }
 
 vec4 WaterRenderer::getClipPlane(Type type)
@@ -118,6 +118,7 @@ int WaterRenderer::generateColourTexture(Type type)
 void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
 {
     sky_.draw(view, proj);
+
     glEnable(GL_CLIP_PLANE0);
     // position camera for reflection (make the terrain appear upside down)
     mat4 scale = glm::scale(mat4(1), vec3(1, -1, 1));
@@ -136,6 +137,7 @@ void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
     glClearColor(1, 1, 1, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, width / 2, height / 2); //TODO
+    sky_.draw(reflection_view, proj);
     terrain_renderer_->render(reflection_view, proj, getClipPlane(Type::Reflection));
 
     glCullFace(GL_FRONT);
@@ -145,6 +147,7 @@ void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, width, height); //TODO
     terrain_renderer_->render(view, proj, getClipPlane(Type::Refraction));
+
     glDisable(GL_CULL_FACE);
     glDisable(GL_CLIP_PLANE0);
 
