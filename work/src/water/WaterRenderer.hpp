@@ -21,6 +21,8 @@ private:
         Refraction
     };
 
+    bool show_sky_ = true;
+
     WaterSurface water_;
     SkyBox sky_;
 
@@ -33,10 +35,14 @@ private:
     TerrainRenderer *terrain_renderer_;
 
     GLFWwindow *window_;
+    glm::ivec2 window_size_;
 
     void initFbos();
     int generateColourTexture(Type type);
     glm::vec4 getClipPlane(Type type);
+
+    void renderRefraction(const glm::mat4 &view, const glm::mat4 &proj);
+    void renderReflection(const glm::mat4 &view, const glm::mat4 &proj);
 
 public:
     WaterRenderer() = default;
