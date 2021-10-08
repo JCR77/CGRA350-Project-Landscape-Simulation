@@ -9,6 +9,9 @@ set(sources
 
 	"SkyBox.hpp"
 	"SkyBox.cpp"
+
+	"Timer.hpp"
+	"Timer.cpp"
 )
 
 # Add these sources to the project target

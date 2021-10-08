@@ -32,6 +32,8 @@ WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer) : terrain_render
     water_.setTextures(refraction_texture_, reflection_texture_);
 
     sky_ = SkyBox(200.f, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"});
+
+    water_speed_ = water_.getMovementSpeed();
 }
 
 vec4 WaterRenderer::getClipPlane(Type type)
@@ -39,7 +41,7 @@ vec4 WaterRenderer::getClipPlane(Type type)
     // raise the clipping plane depending on the amount of distortion,
     // otherwise we get strange artifacts
     float refraction_bias = 100 * distortion_strength_;
-    float reflection_bias = 50 * distortion_strength_;
+    float reflection_bias = 30 * distortion_strength_;
     // todo bias?
     if (type == Type::Refraction)
     {
@@ -130,7 +132,7 @@ void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
     glDisable(GL_CLIP_PLANE0);
 
     glViewport(0, 0, window_size_.x, window_size_.y);
-    water_.draw(view, proj);
+    water_.draw(view, proj, timer_.getDelta());
 }
 
 /**
@@ -179,9 +181,13 @@ void WaterRenderer::renderGUI()
     {
         water_.setHeight(water_height_);
     }
-    if (ImGui::SliderFloat("Distortion Strength", &distortion_strength_, 0.0, 0.03, "%.3f"))
+    if (ImGui::SliderFloat("Distortion Strength", &distortion_strength_, 0.0, 0.02, ""))
     {
         water_.setDistortionStrength(distortion_strength_);
+    }
+    if (ImGui::SliderFloat("Movement Speed", &water_speed_, 0.0, 0.1, ""))
+    {
+        water_.setMovementSpeed(water_speed_);
     }
     ImGui::Checkbox("Show sky", &show_sky_);
 }

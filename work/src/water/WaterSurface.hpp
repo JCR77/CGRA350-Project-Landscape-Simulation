@@ -14,6 +14,10 @@ private:
         DudvMap,
     };
 
+    float movement_speed_ = 0.03;
+    glm::vec2 movement_direction_{-1, -1};
+    glm::vec2 movement_offset_{0};
+
     GLuint shader_ = 0;
 
     // Textures
@@ -25,6 +29,8 @@ private:
     float height_;
     float distortion_strength_ = 0.01;
 
+    void updateMovementOffset(float delta_time);
+
 public:
     WaterSurface() = default;
 
@@ -33,11 +39,13 @@ public:
      */
     WaterSurface(float size, float height);
 
-    void draw(const glm::mat4 &view, const glm::mat4 proj);
+    void draw(const glm::mat4 &view, const glm::mat4 proj, float delta_time);
 
     float getHeight() const { return height_; }
+    float getMovementSpeed() const { return movement_speed_; }
     void setHeight(float height);
     void setDistortionStrength(float strength);
+    void setMovementSpeed(float speed);
 
     void setTextures(int refraction, int reflection);
 };

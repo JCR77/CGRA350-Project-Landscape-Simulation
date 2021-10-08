@@ -10,6 +10,7 @@
 #include "cgra/cgra_mesh.hpp"
 #include "WaterSurface.hpp"
 #include "SkyBox.hpp"
+#include "Timer.hpp"
 #include "../terrainRenderer.hpp"
 
 class WaterRenderer
@@ -21,10 +22,13 @@ private:
         Refraction
     };
 
+    Timer timer_;
+
     // user adjusted
     bool show_sky_ = true;
     float water_height_ = 5.0;
     float distortion_strength_ = 0.01;
+    float water_speed_;
 
     WaterSurface water_;
     SkyBox sky_;

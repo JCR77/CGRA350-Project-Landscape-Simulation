@@ -4,7 +4,6 @@
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
-uniform vec3 uColor;
 uniform vec4 uClipPlane;
 
 // mesh data

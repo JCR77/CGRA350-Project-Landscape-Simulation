@@ -54,13 +54,22 @@ void WaterSurface::setDistortionStrength(float strength)
     distortion_strength_ = strength;
 }
 
+void WaterSurface::setMovementSpeed(float speed)
+{
+    movement_speed_ = speed;
+}
+
 void WaterSurface::setTextures(int refraction, int reflection)
 {
     refraction_texture_ = refraction;
     reflection_texture_ = reflection;
 
-    normal_map_ = rgba_image(CGRA_SRCDIR + string("/res/textures/normal_map.png")).uploadTexture();
-    dudv_map_ = rgba_image(CGRA_SRCDIR + string("/res/textures/dudv_map.png")).uploadTexture();
+    rgba_image normal_image = rgba_image(CGRA_SRCDIR + string("/res/textures/normal_map.png"));
+    normal_image.wrap = vec2(GL_REPEAT, GL_REPEAT);
+    normal_map_ = normal_image.uploadTexture();
+    rgba_image dudv_image = rgba_image(CGRA_SRCDIR + string("/res/textures/dudv_map.png"));
+    dudv_image.wrap = vec2(GL_REPEAT, GL_REPEAT);
+    dudv_map_ = dudv_image.uploadTexture();
 
     // bind to texture units
     glUseProgram(shader_);
@@ -73,8 +82,10 @@ void WaterSurface::setTextures(int refraction, int reflection)
     glUseProgram(0);
 }
 
-void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj)
+void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta_time)
 {
+    updateMovementOffset(delta_time);
+
     glUseProgram(shader_); // load shader and variables
     glBindVertexArray(mesh_.vao);
 
@@ -99,9 +110,16 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj)
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelMatrix"), 1, false, value_ptr(transform));
     glUniform3fv(glGetUniformLocation(shader_, "uColor"), 1, value_ptr(colour_));
     glUniform1f(glGetUniformLocation(shader_, "uDistortionStrength"), distortion_strength_);
+    glUniform2fv(glGetUniformLocation(shader_, "uMovementOffset"), 1, value_ptr(movement_offset_));
 
     glDrawElements(mesh_.mode, mesh_.index_count, GL_UNSIGNED_INT, 0);
 
     glDisable(GL_BLEND);
     glUseProgram(0);
+}
+
+void WaterSurface::updateMovementOffset(float delta_time)
+{
+    movement_offset_ += movement_speed_ * delta_time * movement_direction_;
+    movement_offset_ = mod(movement_offset_, vec2(1));
 }

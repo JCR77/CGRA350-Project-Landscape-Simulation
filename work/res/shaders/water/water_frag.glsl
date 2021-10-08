@@ -8,6 +8,7 @@ uniform sampler2D uNormalMap;
 uniform sampler2D uDudvMap;
 
 uniform float uDistortionStrength;
+uniform vec2 uMovementOffset; // simulate moving water
 
 in VertexData {
 	vec2 textureCoord;
@@ -31,15 +32,17 @@ void main() {
     // map to range [0, 1]
     vec2 uv = projectedCoords * 0.5 + 0.5;
 
+    vec2 mapUv = f_in.textureCoord + uMovementOffset;
+
     // apply distortion
     // sample from dudv map, and offset original uv by this amount
-    vec2 distortion = texture(uDudvMap, f_in.textureCoord).xy;
+    vec2 distortion = texture(uDudvMap, mapUv).xy;
     // map components from range [0, 1] to [-1, 1] to get values in all directions
     distortion = distortion * 2 - 1;
     distortion *= uDistortionStrength;
 
     uv = clamp(uv + distortion, 0.001, 0.999);
-    vec2 normalMapUv = clamp(f_in.textureCoord + distortion, 0.001, 0.999);
+    vec2 normalMapUv = mapUv + distortion;
 
     vec4 refractionColour = texture(uRefraction, uv);
     // refractionColour = mix(refractionColour, vec4(0, 1, 1, 1), 0.5);
@@ -63,9 +66,9 @@ void main() {
     vec3 colour = mix(refractionColour, reflectionColour, weight).xyz;
 
 	// calculate specular lighting
-    float specularStrength = 0.4;
+    float specularStrength = 0.5;
     vec3 reflectDirection = reflect(-f_in.lightDirection, normal);
-    float spec = pow(max(dot(toEye, reflectDirection), 0.0), 32);
+    float spec = pow(max(dot(toEye, reflectDirection), 0.0), 50);
     vec3 specular = specularStrength * spec * lightColour;
 
     colour = specular + colour;
