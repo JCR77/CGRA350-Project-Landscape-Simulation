@@ -6,8 +6,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "../cgra/cgra_image.hpp"
-#include "../cgra/cgra_shader.hpp"
+#include "cgra/cgra_image.hpp"
+#include "cgra/cgra_shader.hpp"
 
 using namespace std;
 using namespace glm;
@@ -29,8 +29,8 @@ SkyBox::SkyBox(float size, std::vector<std::string> file_names)
 
     // set shader
     shader_builder sb;
-    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//water//sky_vert.glsl"));
-    sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//water//sky_frag.glsl"));
+    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("/res/shaders/sky_vert.glsl"));
+    sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("/res/shaders/sky_frag.glsl"));
     shader_ = sb.build();
 }
 

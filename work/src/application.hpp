@@ -40,6 +40,12 @@ private:
     WaterRenderer water_renderer;
     FogRenderer fog_renderer;
 
+    SkyBox *sky;
+
+    bool show_terrain = true;
+    bool show_water = true;
+    bool show_fog = false;
+
 public:
     // setup
     Application(GLFWwindow *);

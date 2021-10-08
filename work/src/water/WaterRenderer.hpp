@@ -9,8 +9,8 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
 #include "WaterSurface.hpp"
-#include "SkyBox.hpp"
 #include "Timer.hpp"
+#include "../SkyBox.hpp"
 #include "../terrainRenderer.hpp"
 
 class WaterRenderer
@@ -24,22 +24,15 @@ private:
 
     Timer timer_;
 
-    // user adjusted
-    bool show_sky_ = true;
-    float water_height_ = 5.0;
-    float distortion_strength_ = 0.01;
-    float water_speed_;
-
     WaterSurface water_;
-    SkyBox sky_;
 
     GLuint refraction_fbo_;
     GLuint reflection_fbo_;
     GLuint refraction_texture_;
     GLuint reflection_texture_;
 
-    // temp, use a pointer instead
     TerrainRenderer *terrain_renderer_;
+    SkyBox *sky_;
 
     glm::ivec2 window_size_;
 
@@ -54,7 +47,7 @@ public:
     WaterRenderer() = default;
 
     // setup
-    WaterRenderer(TerrainRenderer *terrain_renderer);
+    WaterRenderer(TerrainRenderer *terrain_renderer, SkyBox *sky);
 
     // disable copy constructors (for safety)
     WaterRenderer(const WaterRenderer &) = delete;

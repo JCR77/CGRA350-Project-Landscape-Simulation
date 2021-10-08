@@ -7,9 +7,6 @@ set(sources
 	"WaterSurface.hpp"
 	"WaterSurface.cpp"
 
-	"SkyBox.hpp"
-	"SkyBox.cpp"
-
 	"Timer.hpp"
 	"Timer.cpp"
 )

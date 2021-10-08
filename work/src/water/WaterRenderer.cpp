@@ -10,10 +10,8 @@
 
 // project
 #include "WaterRenderer.hpp"
-#include "SkyBox.hpp"
 #include "../cgra/cgra_geometry.hpp"
 #include "../cgra/cgra_gui.hpp"
-#include "../cgra/cgra_image.hpp"
 #include "../cgra/cgra_shader.hpp"
 #include "../cgra/cgra_wavefront.hpp"
 
@@ -21,37 +19,34 @@ using namespace std;
 using namespace cgra;
 using namespace glm;
 
-WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer) : terrain_renderer_(terrain_renderer)
+WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer, SkyBox *sky) : terrain_renderer_(terrain_renderer)
 {
     glfwGetFramebufferSize(glfwGetCurrentContext(), &window_size_.x, &window_size_.y);
 
     // create fbos
     initFbos();
 
-    water_ = WaterSurface(100, water_height_);
+    water_ = WaterSurface(100, 5);
     water_.setTextures(refraction_texture_, reflection_texture_);
 
-    sky_ = SkyBox(200.f, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"});
-
-    water_speed_ = water_.getMovementSpeed();
+    sky_ = sky;
 }
 
 vec4 WaterRenderer::getClipPlane(Type type)
 {
     // raise the clipping plane depending on the amount of distortion,
     // otherwise we get strange artifacts
-    float refraction_bias = 100 * distortion_strength_;
-    float reflection_bias = 30 * distortion_strength_;
-    // todo bias?
+    float refraction_bias = 100 * water_.distortion_strength;
+    float reflection_bias = 30 * water_.distortion_strength;
     if (type == Type::Refraction)
     {
         // clips everything above the water
-        return vec4(0, -1, 0, water_.getHeight() + refraction_bias);
+        return vec4(0, -1, 0, water_.height + refraction_bias);
     }
     else if (type == Type::Reflection)
     {
         // clips everything below the water
-        return vec4(0, 1, 0, -water_.getHeight() + reflection_bias);
+        return vec4(0, 1, 0, -water_.height + reflection_bias);
     }
     return vec4(0);
 }
@@ -80,10 +75,9 @@ int WaterRenderer::generateColourTexture(Type type)
 {
     int width = window_size_.x;
     int height = window_size_.y;
-    /**
-     * We can afford to have a lower resolution for the relection texture,
-     * as it will be distorted later.
-     */
+
+    // We can afford to have a lower resolution for the relection texture,
+    // as it will be distorted later.
     if (type == Type::Reflection)
     {
         width /= 2;
@@ -122,10 +116,6 @@ void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
 
     glEnable(GL_CLIP_PLANE0);
 
-    // render sky
-    if (show_sky_)
-        sky_.draw(view, proj);
-
     renderReflection(view, proj);
     renderRefraction(view, proj);
 
@@ -160,15 +150,17 @@ void WaterRenderer::renderReflection(const glm::mat4 &view, const glm::mat4 &pro
 
     // update view matrix to make scene appear upside down
     mat4 scale = glm::scale(mat4(1), vec3(1, -1, 1));
-    mat4 translate = glm::translate(mat4(1), vec3(0, 2 * water_.getHeight(), 0));
+    mat4 translate = glm::translate(mat4(1), vec3(0, 2 * water_.height, 0));
     mat4 reflection_view = view * translate * scale;
 
     // render reflection to fbo
     glBindFramebuffer(GL_FRAMEBUFFER, reflection_fbo_);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window_size_.x / 2, window_size_.y / 2); // TODO
-    if (show_sky_)
-        sky_.draw(reflection_view, proj);
+
+    // sky also needs to be reflected in the water
+    sky_->draw(reflection_view, proj);
+
     terrain_renderer_->render(reflection_view, proj, getClipPlane(Type::Reflection));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_CULL_FACE);
@@ -176,18 +168,8 @@ void WaterRenderer::renderReflection(const glm::mat4 &view, const glm::mat4 &pro
 
 void WaterRenderer::renderGUI()
 {
-    // example of how to use input boxes
-    if (ImGui::SliderFloat("Height", &water_height_, -10, 20, "%.3f"))
-    {
-        water_.setHeight(water_height_);
-    }
-    if (ImGui::SliderFloat("Distortion Strength", &distortion_strength_, 0.0, 0.02, ""))
-    {
-        water_.setDistortionStrength(distortion_strength_);
-    }
-    if (ImGui::SliderFloat("Movement Speed", &water_speed_, 0.0, 0.1, ""))
-    {
-        water_.setMovementSpeed(water_speed_);
-    }
-    ImGui::Checkbox("Show sky", &show_sky_);
+    ImGui::SliderFloat("Height", &water_.height, -10, 20, "%.3f");
+    ImGui::SliderFloat("Distortion Strength", &water_.distortion_strength, 0.0, 0.02, "");
+    ImGui::SliderFloat("Movement Speed", &water_.movement_speed, 0.0, 0.05, "");
+    ImGui::SliderFloat("Ripple Size", &water_.ripple_size, 5, 20, "");
 }

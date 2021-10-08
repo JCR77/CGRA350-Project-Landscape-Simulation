@@ -9,7 +9,7 @@ using namespace cgra;
 using namespace std;
 using namespace glm;
 
-WaterSurface::WaterSurface(float size, float height) : height_(height)
+WaterSurface::WaterSurface(float size, float height) : height(height)
 {
     // centered at x = 0, z = 0
     mesh_builder builder;
@@ -39,24 +39,9 @@ WaterSurface::WaterSurface(float size, float height) : height_(height)
 
     // set shader
     shader_builder sb;
-    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//water//water_vert.glsl"));
-    sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//water//water_frag.glsl"));
+    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("/res/shaders/water/water_vert.glsl"));
+    sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("/res/shaders/water/water_frag.glsl"));
     shader_ = sb.build();
-}
-
-void WaterSurface::setHeight(float height)
-{
-    height_ = height;
-}
-
-void WaterSurface::setDistortionStrength(float strength)
-{
-    distortion_strength_ = strength;
-}
-
-void WaterSurface::setMovementSpeed(float speed)
-{
-    movement_speed_ = speed;
 }
 
 void WaterSurface::setTextures(int refraction, int reflection)
@@ -64,9 +49,12 @@ void WaterSurface::setTextures(int refraction, int reflection)
     refraction_texture_ = refraction;
     reflection_texture_ = reflection;
 
+    // normal map
     rgba_image normal_image = rgba_image(CGRA_SRCDIR + string("/res/textures/normal_map.png"));
     normal_image.wrap = vec2(GL_REPEAT, GL_REPEAT);
     normal_map_ = normal_image.uploadTexture();
+
+    // dudv map
     rgba_image dudv_image = rgba_image(CGRA_SRCDIR + string("/res/textures/dudv_map.png"));
     dudv_image.wrap = vec2(GL_REPEAT, GL_REPEAT);
     dudv_map_ = dudv_image.uploadTexture();
@@ -103,14 +91,15 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta
     glActiveTexture(GL_TEXTURE0 + TextureUnit::DudvMap);
     glBindTexture(GL_TEXTURE_2D, dudv_map_);
 
-    // translate by height
-    mat4 transform = translate(mat4(1), vec3(0, height_, 0));
+    // loading uniform variables
+    mat4 model_transform = translate(mat4(1), vec3(0, height, 0));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uProjectionMatrix"), 1, false, value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uViewMatrix"), 1, false, value_ptr(view));
-    glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelMatrix"), 1, false, value_ptr(transform));
+    glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelMatrix"), 1, false, value_ptr(model_transform));
     glUniform3fv(glGetUniformLocation(shader_, "uColor"), 1, value_ptr(colour_));
-    glUniform1f(glGetUniformLocation(shader_, "uDistortionStrength"), distortion_strength_);
-    glUniform2fv(glGetUniformLocation(shader_, "uMovementOffset"), 1, value_ptr(movement_offset_));
+    glUniform1f(glGetUniformLocation(shader_, "uDistortionStrength"), distortion_strength);
+    glUniform1f(glGetUniformLocation(shader_, "uRippleSize"), ripple_size);
+    glUniform2fv(glGetUniformLocation(shader_, "uMovementOffset"), 1, value_ptr(movement_offset));
 
     glDrawElements(mesh_.mode, mesh_.index_count, GL_UNSIGNED_INT, 0);
 
@@ -120,6 +109,6 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta
 
 void WaterSurface::updateMovementOffset(float delta_time)
 {
-    movement_offset_ += movement_speed_ * delta_time * movement_direction_;
-    movement_offset_ = mod(movement_offset_, vec2(1));
+    movement_offset += movement_speed * delta_time * movement_direction_;
+    movement_offset = mod(movement_offset, vec2(1));
 }

@@ -5,6 +5,7 @@ uniform mat4 uProjectionMatrix;
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
 uniform vec4 uClipPlane;
+uniform float uRippleSize;
 
 // mesh data
 layout(location = 0) in vec3 aPosition;
@@ -28,8 +29,10 @@ void main() {
 	// transform vertex data to viewspace
 	v_out.position = (modelView * vec4(aPosition, 1)).xyz;
 	v_out.normal = normalize((modelView * vec4(aNormal, 0)).xyz);
-	v_out.textureCoord = aTexCoord;
     v_out.lightDirection = normalize(vec3(uViewMatrix * lightDirection));
+
+    // adjust ripple size by tiling texture coords
+	v_out.textureCoord = aTexCoord * (10 / uRippleSize);
 
     v_out.clipSpacePosition = uProjectionMatrix * modelView * vec4(aPosition, 1);
 	// set the screenspace position (needed for converting to fragment data)

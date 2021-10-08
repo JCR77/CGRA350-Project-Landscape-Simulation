@@ -23,7 +23,8 @@ using namespace glm;
 Application::Application(GLFWwindow *window) : m_window(window)
 {
     terrain_renderer = new TerrainRenderer();
-    water_renderer = WaterRenderer(terrain_renderer);
+    sky = new SkyBox(200.f, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"});
+    water_renderer = WaterRenderer(terrain_renderer, sky);
 }
 
 void Application::render()
@@ -60,25 +61,30 @@ void Application::render()
         drawAxis(view, proj);
     glPolygonMode(GL_FRONT_AND_BACK, (m_showWireframe) ? GL_LINE : GL_FILL);
 
+    sky->draw(view, proj);
+
     // draw
-    terrain_renderer->render(view, proj);
-    water_renderer.render(view, proj);
-    //fog_renderer.render(view, proj);
+    if (show_terrain)
+        terrain_renderer->render(view, proj);
+    if (show_water)
+        water_renderer.render(view, proj);
+    if (show_fog)
+        fog_renderer.render(view, proj);
 }
 
 void Application::renderGUI()
 {
-
     // setup window
     ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiSetCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(300, 310), ImGuiSetCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(300, 350), ImGuiSetCond_Once);
     ImGui::Begin("Options", 0);
 
     // display current camera parameters
     ImGui::Text("Application %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::SliderFloat("Pitch", &m_pitch, -pi<float>() / 2, pi<float>() / 2, "%.2f");
-    ImGui::SliderFloat("Yaw", &m_yaw, -pi<float>(), pi<float>(), "%.2f");
-    ImGui::SliderFloat("Distance", &m_distance, 0, 100, "%.2f", 2.0f);
+    // ImGui::SliderFloat("Pitch", &m_pitch, -pi<float>() / 2, pi<float>() / 2, "%.2f");
+    // ImGui::SliderFloat("Yaw", &m_yaw, -pi<float>(), pi<float>(), "%.2f");
+    // ImGui::SliderFloat("Distance", &m_distance, 0, 100, "%.2f", 2.0f);
+    ImGui::Separator();
 
     // helpful drawing options
     ImGui::Checkbox("Show axis", &m_show_axis);
@@ -90,20 +96,29 @@ void Application::renderGUI()
         rgba_image::screenshot(true);
 
     ImGui::Separator();
+    ImGui::Checkbox("Terrain", &show_terrain);
+    ImGui::SameLine();
+    ImGui::Checkbox("Water", &show_water);
+    ImGui::SameLine();
+    ImGui::Checkbox("Fog", &show_fog);
+    ImGui::Separator();
 
-    if (ImGui::CollapsingHeader("Terrain"))
+    if (show_terrain)
     {
-        terrain_renderer->renderGUI();
+        if (ImGui::CollapsingHeader("Terrain##ID1"))
+            terrain_renderer->renderGUI();
     }
 
-    if (ImGui::CollapsingHeader("Water"))
+    if (show_water)
     {
-        water_renderer.renderGUI();
+        if (ImGui::CollapsingHeader("Water##ID1"))
+            water_renderer.renderGUI();
     }
 
-    if (ImGui::CollapsingHeader("Fog"))
+    if (show_fog)
     {
-        fog_renderer.renderGUI();
+        if (ImGui::CollapsingHeader("Fog##ID1"))
+            fog_renderer.renderGUI();
     }
 
     // finish creating window

@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include "../opengl.hpp"
-#include "../cgra/cgra_mesh.hpp"
+#include "opengl.hpp"
+#include "cgra/cgra_mesh.hpp"
 
 /**
  * https://learnopengl.com/Advanced-OpenGL/Cubemaps
