@@ -23,7 +23,7 @@ private:
 
     // oribital camera
     float m_pitch = .35;
-    float m_yaw = -1.33;
+    float m_yaw = 0;
     float m_distance = 85.46;
 
     // last input
@@ -39,6 +39,12 @@ private:
     TerrainRenderer *terrain_renderer;
     WaterRenderer water_renderer;
     FogRenderer fog_renderer;
+
+    SkyBox *sky;
+
+    bool show_terrain = true;
+    bool show_water = true;
+    bool show_fog = false;
 
 public:
     // setup

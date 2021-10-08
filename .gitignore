@@ -3,6 +3,9 @@
 
 # Builds
 Build/*
+build/
+
+test/
 
 **/.DS_Store
 .vscode/

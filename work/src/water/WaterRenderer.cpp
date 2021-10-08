@@ -12,7 +12,6 @@
 #include "WaterRenderer.hpp"
 #include "../cgra/cgra_geometry.hpp"
 #include "../cgra/cgra_gui.hpp"
-#include "../cgra/cgra_image.hpp"
 #include "../cgra/cgra_shader.hpp"
 #include "../cgra/cgra_wavefront.hpp"
 
@@ -20,34 +19,41 @@ using namespace std;
 using namespace cgra;
 using namespace glm;
 
-WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer, GLFWwindow *window)
-    : window_(window), terrain_renderer_(terrain_renderer)
+WaterRenderer::WaterRenderer(TerrainRenderer *terrain_renderer, SkyBox *sky) : terrain_renderer_(terrain_renderer)
 {
+    glfwGetFramebufferSize(glfwGetCurrentContext(), &window_size_.x, &window_size_.y);
+
     // create fbos
     initFbos();
 
-    water_ = WaterSurface(100, 0);
+    water_ = WaterSurface(100, 5);
     water_.setTextures(refraction_texture_, reflection_texture_);
+
+    sky_ = sky;
 }
 
 vec4 WaterRenderer::getClipPlane(Type type)
 {
-    // todo bias?
+    // raise the clipping plane depending on the amount of distortion,
+    // otherwise we get strange artifacts
+    float refraction_bias = 100 * water_.distortion_strength;
+    float reflection_bias = 30 * water_.distortion_strength;
     if (type == Type::Refraction)
     {
         // clips everything above the water
-        return vec4(0, -1, 0, water_.getHeight());
+        return vec4(0, -1, 0, water_.height + refraction_bias);
     }
     else if (type == Type::Reflection)
     {
         // clips everything below the water
-        return vec4(0, 1, 0, -water_.getHeight());
+        return vec4(0, 1, 0, -water_.height + reflection_bias);
     }
     return vec4(0);
 }
 
 /**
  * Creates the fbos for the reflection and refraction textures.
+ * // TODO handle window resize for fbos?
  */
 void WaterRenderer::initFbos()
 {
@@ -59,28 +65,30 @@ void WaterRenderer::initFbos()
     glGenFramebuffers(1, &reflection_fbo_);
     glBindFramebuffer(GL_FRAMEBUFFER, reflection_fbo_);
     reflection_texture_ = generateColourTexture(Type::Reflection);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // get current frame buffer size
-    int width, height;
-    glfwGetFramebufferSize(window_, &width, &height);
-    glViewport(0, 0, width, height);
+    // reflection needs depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, window_size_.x, window_size_.y);
 }
 
 int WaterRenderer::generateColourTexture(Type type)
 {
-    // get current frame buffer size
-    int width, height;
-    glfwGetFramebufferSize(window_, &width, &height);
+    int width = window_size_.x;
+    int height = window_size_.y;
 
-    /**
-     * We can afford to have a lower resolution for the relection texture,
-     * as it will be distorted later.
-     */
+    // We can afford to have a lower resolution for the relection texture,
+    // as it will be distorted later.
     if (type == Type::Reflection)
     {
         width /= 2;
         height /= 2;
+
+        // reflection needs depth buffer
+        GLuint depth_buffer;
+        glGenRenderbuffers(1, &depth_buffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
     }
 
     GLuint colour_texture;
@@ -91,7 +99,6 @@ int WaterRenderer::generateColourTexture(Type type)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    // TODO?
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colour_texture, 0);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -104,47 +111,65 @@ int WaterRenderer::generateColourTexture(Type type)
 
 void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
 {
+    // get current frame buffer size
+    glfwGetFramebufferSize(glfwGetCurrentContext(), &window_size_.x, &window_size_.y);
+
     glEnable(GL_CLIP_PLANE0);
-    // position camera for reflection (make the terrain appear upside down)
+
+    renderReflection(view, proj);
+    renderRefraction(view, proj);
+
+    glDisable(GL_CLIP_PLANE0);
+
+    glViewport(0, 0, window_size_.x, window_size_.y);
+    water_.draw(view, proj, timer_.getDelta());
+}
+
+/**
+ * Renders the refraction to an fbo
+ */
+void WaterRenderer::renderRefraction(const glm::mat4 &view, const glm::mat4 &proj)
+{
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glBindFramebuffer(GL_FRAMEBUFFER, refraction_fbo_);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, window_size_.x, window_size_.y); // TODO
+    terrain_renderer_->render(view, proj, getClipPlane(Type::Refraction));
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_CULL_FACE);
+}
+
+/**
+ * Renders the reflection to an fbo
+ */
+void WaterRenderer::renderReflection(const glm::mat4 &view, const glm::mat4 &proj)
+{
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    // update view matrix to make scene appear upside down
     mat4 scale = glm::scale(mat4(1), vec3(1, -1, 1));
-    mat4 translate = glm::translate(mat4(1), vec3(0, 2 * water_.getHeight(), 0));
+    mat4 translate = glm::translate(mat4(1), vec3(0, 2 * water_.height, 0));
     mat4 reflection_view = view * translate * scale;
 
-    // get current frame buffer size
-    int width, height;
-    glfwGetFramebufferSize(window_, &width, &height);
-
-    glEnable(GL_CULL_FACE);
-
-    glCullFace(GL_BACK);
     // render reflection to fbo
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, reflection_fbo_);
-    glViewport(0, 0, width / 2, height / 2); //TODO
-    glClearColor(1, 1, 1, 1.f);
+    glBindFramebuffer(GL_FRAMEBUFFER, reflection_fbo_);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, window_size_.x / 2, window_size_.y / 2); // TODO
+
+    // sky also needs to be reflected in the water
+    sky_->draw(reflection_view, proj);
+
     terrain_renderer_->render(reflection_view, proj, getClipPlane(Type::Reflection));
-
-    glCullFace(GL_FRONT);
-    // render refraction to fbo
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, refraction_fbo_);
-    glViewport(0, 0, width, height); //TODO
-    glClearColor(1, 1, 1, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    terrain_renderer_->render(view, proj, getClipPlane(Type::Refraction));
-    glDisable(GL_CULL_FACE);
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, width, height); //TODO
-    water_.draw(view, proj);
-    glDisable(GL_CLIP_PLANE0);
+    glDisable(GL_CULL_FACE);
 }
 
 void WaterRenderer::renderGUI()
 {
-    // example of how to use input boxes
-    float height;
-    if (ImGui::SliderFloat("Height", &height, -10, 20))
-    {
-        water_.setHeight(height);
-    }
+    ImGui::SliderFloat("Height", &water_.height, -10, 20, "%.3f");
+    ImGui::SliderFloat("Distortion Strength", &water_.distortion_strength, 0.0, 0.02, "");
+    ImGui::SliderFloat("Movement Speed", &water_.movement_speed, 0.0, 0.05, "");
+    ImGui::SliderFloat("Ripple Size", &water_.ripple_size, 5, 20, "");
 }
