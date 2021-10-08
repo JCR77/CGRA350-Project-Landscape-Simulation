@@ -23,12 +23,11 @@ using namespace glm;
 Application::Application(GLFWwindow *window) : m_window(window)
 {
     terrain_renderer = new TerrainRenderer();
-    water_renderer = WaterRenderer(terrain_renderer, window);
+    water_renderer = WaterRenderer(terrain_renderer);
 }
 
 void Application::render()
 {
-
     // retrieve the window height
     int width, height;
     glfwGetFramebufferSize(m_window, &width, &height);

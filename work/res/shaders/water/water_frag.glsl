@@ -7,6 +7,8 @@ uniform sampler2D uReflection;
 uniform sampler2D uNormalMap;
 uniform sampler2D uDudvMap;
 
+uniform float uDistortionStrength;
+
 in VertexData {
 	vec2 textureCoord;
     // In view space
@@ -17,7 +19,7 @@ in VertexData {
 } f_in;
 
 const vec3 lightColour = vec3(1, 1, 1);
-// framebuffer output
+
 out vec4 fb_color;
 
 /**
@@ -29,13 +31,23 @@ void main() {
     // map to range [0, 1]
     vec2 uv = projectedCoords * 0.5 + 0.5;
 
+    // apply distortion
+    // sample from dudv map, and offset original uv by this amount
+    vec2 distortion = texture(uDudvMap, f_in.textureCoord).xy;
+    // map components from range [0, 1] to [-1, 1] to get values in all directions
+    distortion = distortion * 2 - 1;
+    distortion *= uDistortionStrength;
+
+    uv = clamp(uv + distortion, 0.001, 0.999);
+    vec2 normalMapUv = clamp(f_in.textureCoord + distortion, 0.001, 0.999);
+
     vec4 refractionColour = texture(uRefraction, uv);
     // refractionColour = mix(refractionColour, vec4(0, 1, 1, 1), 0.5);
     vec4 reflectionColour = texture(uReflection, uv);
 
     vec3 toEye = normalize(-f_in.position);
     // get normal from normal map
-    vec3 normal = texture(uNormalMap, f_in.textureCoord).xyz;
+    vec3 normal = texture(uNormalMap, normalMapUv).xyz;
     // map x and z current range of [0, 1] to [-1, 1],
     // and scale y, to get more normals facing upward
     normal = vec3(normal.x * 2 - 1, normal.y * 8, normal.z * 2 - 1);
@@ -49,10 +61,8 @@ void main() {
 
     // mix refraction and reflection textures using fresnel effect
     vec3 colour = mix(refractionColour, reflectionColour, weight).xyz;
-    // mix with a little bit of blue
-    // colour = mix(colour, vec3(0.0, 1, 1), 0.1).xyz;
 
-	/* calculate specular lighting */
+	// calculate specular lighting
     float specularStrength = 0.4;
     vec3 reflectDirection = reflect(-f_in.lightDirection, normal);
     float spec = pow(max(dot(toEye, reflectDirection), 0.0), 32);

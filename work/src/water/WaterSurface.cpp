@@ -49,6 +49,11 @@ void WaterSurface::setHeight(float height)
     height_ = height;
 }
 
+void WaterSurface::setDistortionStrength(float strength)
+{
+    distortion_strength_ = strength;
+}
+
 void WaterSurface::setTextures(int refraction, int reflection)
 {
     refraction_texture_ = refraction;
@@ -93,6 +98,7 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj)
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uViewMatrix"), 1, false, value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelMatrix"), 1, false, value_ptr(transform));
     glUniform3fv(glGetUniformLocation(shader_, "uColor"), 1, value_ptr(colour_));
+    glUniform1f(glGetUniformLocation(shader_, "uDistortionStrength"), distortion_strength_);
 
     glDrawElements(mesh_.mode, mesh_.index_count, GL_UNSIGNED_INT, 0);
 

@@ -23,6 +23,7 @@ private:
     glm::vec3 colour_{0, 0, 1}; // temp
 
     float height_;
+    float distortion_strength_ = 0.01;
 
 public:
     WaterSurface() = default;
@@ -36,6 +37,7 @@ public:
 
     float getHeight() const { return height_; }
     void setHeight(float height);
+    void setDistortionStrength(float strength);
 
     void setTextures(int refraction, int reflection);
 };

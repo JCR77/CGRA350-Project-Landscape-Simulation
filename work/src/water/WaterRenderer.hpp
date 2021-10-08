@@ -21,10 +21,12 @@ private:
         Refraction
     };
 
+    // user adjusted
     bool show_sky_ = true;
+    float water_height_ = 5.0;
+    float distortion_strength_ = 0.01;
 
     WaterSurface water_;
-    float water_height_ = 5.0;
     SkyBox sky_;
 
     GLuint refraction_fbo_;
@@ -35,7 +37,6 @@ private:
     // temp, use a pointer instead
     TerrainRenderer *terrain_renderer_;
 
-    GLFWwindow *window_;
     glm::ivec2 window_size_;
 
     void initFbos();
@@ -49,7 +50,7 @@ public:
     WaterRenderer() = default;
 
     // setup
-    WaterRenderer(TerrainRenderer *terrain_renderer, GLFWwindow *window);
+    WaterRenderer(TerrainRenderer *terrain_renderer);
 
     // disable copy constructors (for safety)
     WaterRenderer(const WaterRenderer &) = delete;
