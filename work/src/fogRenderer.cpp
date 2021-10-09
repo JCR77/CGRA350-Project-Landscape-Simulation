@@ -47,6 +47,9 @@ FogRenderer::FogRenderer() {
 	m_model.color = vec3(1, 0, 0);
 
 	
+
+
+	
 }
 
 

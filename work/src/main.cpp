@@ -9,6 +9,7 @@
 #include "opengl.hpp"
 #include "cgra/cgra_gui.hpp"
 #include "cgra/cgra_shader.hpp"
+#include "cgra/cgra_image.hpp"
 
 
 using namespace std;
@@ -177,6 +178,18 @@ int main() {
 		cout << "its not complete lol" << "\n";
 	}
 
+	//Load fog texture
+	GLuint fogTexture;
+	//fogTexture = rgba_image("fogTexture.png").uploadTexture;
+	rgba_image test = rgba_image("fogTexture.png");
+	fogTexture = test.uploadTexture();
+
+	glUseProgram(shader);
+	glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, fogTexture);
+
+
 	// loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
 		//Fix to get correct window size
@@ -200,8 +213,10 @@ int main() {
 
 		glUseProgram(shader); // shader program for rendering the quad 
 		
-		glUniform1i(glGetUniformLocation(shader, "screenTexture"),0);
-		glUniform1i(glGetUniformLocation(shader, "screenTexture2"), 1);
+		glUniform1i(glGetUniformLocation(shader, "originalOutput"),0);
+		glUniform1i(glGetUniformLocation(shader, "depthBuffer"), 1);
+		glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
+		
 
 		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer.near);
 		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer.far);
@@ -213,6 +228,9 @@ int main() {
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depthBuffer); // color attachment texture
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, fogTexture);
 
 
 		//glActiveTexture(GL_TEXTURE1);

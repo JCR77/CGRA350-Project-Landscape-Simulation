@@ -3,8 +3,9 @@ out vec4 FragColor;
 
 in vec2 TexCoords;
 
-uniform sampler2D screenTexture;
-uniform sampler2D screenTexture2;
+uniform sampler2D originalOutput;
+uniform sampler2D depthBuffer;
+uniform sampler2D fogTexture;
 uniform float near;
 uniform float far;
 uniform float state;
@@ -41,28 +42,28 @@ void main()
 {
 
     //Original Output
-    //FragColor = vec4(texture(screenTexture, TexCoords).rgb,1);
-    cIn = texture(screenTexture, TexCoords).rgb;
+    //FragColor = vec4(texture(originalOutput, TexCoords).rgb,1);
+    cIn = texture(originalOutput, TexCoords).rgb;
 
 
     //Fake Fog
-    //float depth = logisticDepth(texture(screenTexture2, TexCoords.st).r);
+    //float depth = logisticDepth(texture(depthBuffer, TexCoords.st).r);
     //FragColor = vec4(cIn, 1.0f) * (1.0f - depth) + vec4(depth * vec3(0.85f,0.85f,0.90f) , 1.0f);
 
     //Depthmap(Linear Version)
-    //FragColor = vec4(vec3(linearizeDepth(texture(screenTexture2, TexCoords.st).r) / far), 1.0f);
+    //FragColor = vec4(vec3(linearizeDepth(texture(depthBuffer, TexCoords.st).r) / far), 1.0f);
 
     //Final Output
     //FragColor = f() * cIn + (1 - f()) * cFog;
 
     if(state >= 1.0f)
     {
-        float depth = logisticDepth(texture(screenTexture2, TexCoords.st).r);
+        float depth = logisticDepth(texture(depthBuffer, TexCoords.st).r);
         FragColor = vec4(cIn, 1.0f) * (1.0f - depth) + vec4(depth * vec3(0.85f,0.85f,0.90f) , 1.0f);
     }
     else
     {
-        FragColor = vec4(texture(screenTexture, TexCoords).rgb,1);
+        FragColor = vec4(texture(originalOutput, TexCoords).rgb,1);
     }
     
 }
