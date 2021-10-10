@@ -16,7 +16,6 @@ out VertexData {
 	vec2 textureCoord;
     // In view space
 	vec3 position;
-	vec3 normal;
     vec4 clipSpacePosition;
     vec3 lightDirection;
 } v_out;
@@ -28,13 +27,11 @@ void main() {
 
 	// transform vertex data to viewspace
 	v_out.position = (modelView * vec4(aPosition, 1)).xyz;
-	v_out.normal = normalize((modelView * vec4(aNormal, 0)).xyz);
     v_out.lightDirection = normalize(vec3(uViewMatrix * lightDirection));
 
     // adjust ripple size by tiling texture coords
 	v_out.textureCoord = aTexCoord * (10 / uRippleSize);
 
     v_out.clipSpacePosition = uProjectionMatrix * modelView * vec4(aPosition, 1);
-	// set the screenspace position (needed for converting to fragment data)
 	gl_Position = v_out.clipSpacePosition;
 }

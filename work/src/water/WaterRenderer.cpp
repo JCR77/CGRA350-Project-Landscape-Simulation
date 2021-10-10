@@ -170,6 +170,6 @@ void WaterRenderer::renderGUI()
 {
     ImGui::SliderFloat("Height", &water_.height, -10, 20, "%.3f");
     ImGui::SliderFloat("Distortion Strength", &water_.distortion_strength, 0.0, 0.02, "");
-    ImGui::SliderFloat("Movement Speed", &water_.movement_speed, 0.0, 0.05, "");
-    ImGui::SliderFloat("Ripple Size", &water_.ripple_size, 5, 20, "");
+    ImGui::SliderFloat("Movement Speed", &water_.distortion_speed, 0.0, 0.05, "");
+    ImGui::SliderFloat("Ripple Size", &water_.ripple_size, 3, 20, "");
 }
