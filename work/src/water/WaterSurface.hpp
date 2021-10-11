@@ -58,7 +58,7 @@ protected:
     float ripple_size = 6;
 
 public:
-    WaterSurface() = default;
+    ~WaterSurface();
 
     /**
      * Contructs a square plane mesh at a certain height in the scene.

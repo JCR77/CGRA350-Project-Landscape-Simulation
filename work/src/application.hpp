@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <memory>
+
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -36,11 +38,11 @@ private:
     bool m_showWireframe = false;
 
     // renderers
-    TerrainRenderer *terrain_renderer;
-    WaterRenderer water_renderer;
+    std::shared_ptr<TerrainRenderer> terrain_renderer;
+    std::shared_ptr<WaterRenderer> water_renderer;
     FogRenderer fog_renderer;
 
-    SkyBox *sky;
+    std::shared_ptr<SkyBox> sky;
 
     bool show_terrain = true;
     bool show_water = true;
@@ -64,4 +66,5 @@ public:
     void scrollCallback(double xoffset, double yoffset);
     void keyCallback(int key, int scancode, int action, int mods);
     void charCallback(unsigned int c);
+    void resize(int width, int height); // resizing the window
 };

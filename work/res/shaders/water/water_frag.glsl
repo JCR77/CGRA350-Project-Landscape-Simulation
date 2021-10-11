@@ -32,7 +32,7 @@ vec3 sampleNormal(vec2 uvCoord) {
     vec3 normal = texture(uNormalMap, uvCoord).xyz;
     // map x and z current range of [0, 1] to [-1, 1],
     // and scale y, to get more normals facing upward
-    normal = vec3(normal.x * 2 - 1, normal.y * 8, normal.z * 2 - 1);
+    normal = vec3(normal.x * 2 - 1, normal.y * 12, normal.z * 2 - 1);
     return normalize(normal);
 }
 

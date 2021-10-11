@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <memory>
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -24,15 +25,15 @@ private:
 
     Timer timer_;
 
-    WaterSurface water_;
+    std::unique_ptr<WaterSurface> water_;
 
     GLuint refraction_fbo_;
     GLuint reflection_fbo_;
     GLuint refraction_texture_;
     GLuint reflection_texture_;
 
-    TerrainRenderer *terrain_renderer_;
-    SkyBox *sky_;
+    std::weak_ptr<TerrainRenderer> terrain_renderer_;
+    std::weak_ptr<SkyBox> sky_;
 
     glm::ivec2 window_size_;
 
@@ -42,17 +43,20 @@ private:
 
     void renderRefraction(const glm::mat4 &view, const glm::mat4 &proj);
     void renderReflection(const glm::mat4 &view, const glm::mat4 &proj);
+    void destroy();
 
 public:
-    WaterRenderer() = default;
+    ~WaterRenderer();
 
     // setup
-    WaterRenderer(TerrainRenderer *terrain_renderer, SkyBox *sky);
+    WaterRenderer(std::weak_ptr<TerrainRenderer> terrain_renderer, std::weak_ptr<SkyBox> sky);
 
     // disable copy constructors (for safety)
     WaterRenderer(const WaterRenderer &) = delete;
+    WaterRenderer &operator=(const WaterRenderer &) = delete;
 
     // rendering callbacks (every frame)
     void render(const glm::mat4 &view, const glm::mat4 &proj);
     void renderGUI();
+    void resize(int width, int height);
 };

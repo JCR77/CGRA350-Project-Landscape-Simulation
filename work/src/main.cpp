@@ -20,6 +20,7 @@ namespace
     void scrollCallback(GLFWwindow *win, double xoffset, double yoffset);
     void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods);
     void charCallback(GLFWwindow *win, unsigned int c);
+    void framebufferResize(GLFWwindow *win, int width, int height);
     void APIENTRY debugCallback(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *, GLvoid *);
 
     // global static pointer to application once we create it
@@ -110,6 +111,7 @@ int main()
     glfwSetScrollCallback(window, scrollCallback);
     glfwSetKeyCallback(window, keyCallback);
     glfwSetCharCallback(window, charCallback);
+    glfwSetFramebufferSizeCallback(window, framebufferResize);
 
     // create the application object (and a global pointer to it)
     Application application(window);
@@ -143,6 +145,10 @@ int main()
 
 namespace
 {
+    void framebufferResize(GLFWwindow *win, int width, int height)
+    {
+        application_ptr->resize(width, height);
+    }
 
     void cursorPosCallback(GLFWwindow *, double xpos, double ypos)
     {
