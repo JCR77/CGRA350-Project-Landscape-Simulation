@@ -21,7 +21,12 @@ private:
     void createMesh();
 
 public:
-    SkyBox() = default;
+    /**
+     * Uses default sky images
+     */
+    SkyBox(float size);
+    ~SkyBox();
+
     /**
      * right, left, top, bottom, front, back
      */

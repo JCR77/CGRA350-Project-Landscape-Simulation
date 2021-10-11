@@ -22,9 +22,9 @@ using namespace glm;
 
 Application::Application(GLFWwindow *window) : m_window(window)
 {
-    terrain_renderer = new TerrainRenderer();
-    sky = new SkyBox(200.f, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"});
-    water_renderer = WaterRenderer(terrain_renderer, sky);
+    terrain_renderer = make_shared<TerrainRenderer>();
+    sky = make_shared<SkyBox>(200.f);
+    water_renderer = make_shared<WaterRenderer>(terrain_renderer, sky);
 }
 
 void Application::render()
@@ -67,7 +67,7 @@ void Application::render()
     if (show_terrain)
         terrain_renderer->render(view, proj);
     if (show_water)
-        water_renderer.render(view, proj);
+        water_renderer->render(view, proj);
     if (show_fog)
         fog_renderer.render(view, proj);
 }
@@ -112,7 +112,7 @@ void Application::renderGUI()
     if (show_water)
     {
         if (ImGui::CollapsingHeader("Water##ID1"))
-            water_renderer.renderGUI();
+            water_renderer->renderGUI();
     }
 
     if (show_fog)
@@ -141,6 +141,7 @@ void Application::cursorPosCallback(double xpos, double ypos)
             m_yaw -= float(2 * pi<float>());
         else if (m_yaw < -pi<float>())
             m_yaw += float(2 * pi<float>());
+        WaterRenderer::setSceneUpdated();
     }
 
     // updated mouse position
@@ -160,6 +161,7 @@ void Application::scrollCallback(double xoffset, double yoffset)
 {
     (void)xoffset; // currently un-used
     m_distance *= pow(1.1f, -yoffset);
+    WaterRenderer::setSceneUpdated();
 }
 
 void Application::keyCallback(int key, int scancode, int action, int mods)
@@ -170,4 +172,10 @@ void Application::keyCallback(int key, int scancode, int action, int mods)
 void Application::charCallback(unsigned int c)
 {
     (void)c; // currently un-used
+}
+
+void Application::resize(int width, int height)
+{
+    water_renderer->resize(width, height);
+    WaterRenderer::setSceneUpdated();
 }

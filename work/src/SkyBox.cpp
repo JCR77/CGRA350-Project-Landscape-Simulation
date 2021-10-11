@@ -13,6 +13,11 @@ using namespace std;
 using namespace glm;
 using namespace cgra;
 
+SkyBox::SkyBox(float size)
+    : SkyBox(size, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"})
+{
+}
+
 SkyBox::SkyBox(float size, std::vector<std::string> file_names)
 {
     createMesh();
@@ -38,6 +43,8 @@ void SkyBox::draw(const mat4 &view, const mat4 &proj)
 {
     glUseProgram(shader_); // load shader and variables
 
+    // extract only rotation and scale from view transformation, to prevent skybox from
+    // moving as the camera moves
     vec3 v;
     vec4 v4;
     vec3 scale;
@@ -45,7 +52,6 @@ void SkyBox::draw(const mat4 &view, const mat4 &proj)
     glm::decompose(view, scale, rotation, v, v, v4);
     mat4 rot_view = mat4_cast(rotation) * glm::scale(mat4(1), scale);
 
-    // model = transform_;
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture_);
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uProjectionMatrix"), 1, false, value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uViewMatrix"), 1, false, value_ptr(rot_view));
@@ -79,4 +85,11 @@ void SkyBox::createMesh()
     }
 
     mesh_ = builder.build();
+}
+
+SkyBox::~SkyBox()
+{
+    glDeleteProgram(shader_);
+    glDeleteTextures(1, &texture_);
+    mesh_.destroy();
 }

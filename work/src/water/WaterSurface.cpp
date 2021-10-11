@@ -42,12 +42,6 @@ WaterSurface::WaterSurface(float size, float height) : height(height)
     sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("/res/shaders/water/water_vert.glsl"));
     sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("/res/shaders/water/water_frag.glsl"));
     shader_ = sb.build();
-}
-
-void WaterSurface::setTextures(int refraction, int reflection)
-{
-    refraction_texture_ = refraction;
-    reflection_texture_ = reflection;
 
     // normal map
     rgba_image normal_image = rgba_image(CGRA_SRCDIR + string("/res/textures/normal_map.png"));
@@ -66,13 +60,18 @@ void WaterSurface::setTextures(int refraction, int reflection)
     glUniform1i(glGetUniformLocation(shader_, "uNormalMap"), TextureUnit::NormalMap);
     glUniform1i(glGetUniformLocation(shader_, "uDudvMap"), TextureUnit::DudvMap);
 
-    // distortion map
     glUseProgram(0);
+}
+
+void WaterSurface::setTextures(int refraction, int reflection)
+{
+    refraction_texture_ = refraction;
+    reflection_texture_ = reflection;
 }
 
 void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta_time)
 {
-    updateMovementOffset(delta_time);
+    updateOffsets(delta_time);
 
     glUseProgram(shader_); // load shader and variables
     glBindVertexArray(mesh_.vao);
@@ -99,7 +98,8 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta
     glUniform3fv(glGetUniformLocation(shader_, "uColor"), 1, value_ptr(colour_));
     glUniform1f(glGetUniformLocation(shader_, "uDistortionStrength"), distortion_strength);
     glUniform1f(glGetUniformLocation(shader_, "uRippleSize"), ripple_size);
-    glUniform2fv(glGetUniformLocation(shader_, "uMovementOffset"), 1, value_ptr(movement_offset));
+    glUniform2fv(glGetUniformLocation(shader_, "uPrimaryOffset"), 1, value_ptr(primary_offset_.current_offset));
+    glUniform2fv(glGetUniformLocation(shader_, "uSecondaryOffset"), 1, value_ptr(secondary_offset_.current_offset));
 
     glDrawElements(mesh_.mode, mesh_.index_count, GL_UNSIGNED_INT, 0);
 
@@ -107,8 +107,19 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta
     glUseProgram(0);
 }
 
-void WaterSurface::updateMovementOffset(float delta_time)
+void WaterSurface::updateOffsets(float delta_time)
 {
-    movement_offset += movement_speed * delta_time * movement_direction_;
-    movement_offset = mod(movement_offset, vec2(1));
+    primary_offset_.update(distortion_speed, delta_time);
+    secondary_offset_.update(distortion_speed, delta_time);
+}
+
+WaterSurface::~WaterSurface()
+{
+    // Destroy all the textures
+    glDeleteTextures(1, &refraction_texture_);
+    glDeleteTextures(1, &reflection_texture_);
+    glDeleteTextures(1, &normal_map_);
+    glDeleteTextures(1, &dudv_map_);
+    glDeleteProgram(shader_);
+    mesh_.destroy();
 }
