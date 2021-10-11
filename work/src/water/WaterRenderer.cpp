@@ -19,6 +19,8 @@ using namespace std;
 using namespace cgra;
 using namespace glm;
 
+bool WaterRenderer::scene_updated = true;
+
 WaterRenderer::WaterRenderer(weak_ptr<TerrainRenderer> terrain_renderer, weak_ptr<SkyBox> sky) : terrain_renderer_(terrain_renderer)
 {
     glfwGetFramebufferSize(glfwGetCurrentContext(), &window_size_.x, &window_size_.y);
@@ -124,15 +126,22 @@ void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
     // get current frame buffer size
     glfwGetFramebufferSize(glfwGetCurrentContext(), &window_size_.x, &window_size_.y);
 
-    glEnable(GL_CLIP_PLANE0);
+    // optimization:
+    // only re-render reflection and refraction when absolutely necessary
+    if (scene_updated)
+    {
+        glEnable(GL_CLIP_PLANE0);
 
-    renderReflection(view, proj);
-    renderRefraction(view, proj);
+        renderReflection(view, proj);
+        renderRefraction(view, proj);
 
-    glDisable(GL_CLIP_PLANE0);
+        glDisable(GL_CLIP_PLANE0);
 
-    glViewport(0, 0, window_size_.x, window_size_.y);
+        glViewport(0, 0, window_size_.x, window_size_.y);
+    }
+
     water_->draw(view, proj, timer_.getDelta());
+    scene_updated = false;
 }
 
 /**
@@ -178,7 +187,10 @@ void WaterRenderer::renderReflection(const glm::mat4 &view, const glm::mat4 &pro
 
 void WaterRenderer::renderGUI()
 {
-    ImGui::SliderFloat("Height", &water_->height, -10, 20, "%.3f");
+    if (ImGui::SliderFloat("Height", &water_->height, -10, 20, "%.3f"))
+    {
+        setSceneUpdated();
+    }
     ImGui::SliderFloat("Distortion Strength", &water_->distortion_strength, 0.0, 0.02, "");
     ImGui::SliderFloat("Movement Speed", &water_->distortion_speed, 0.0, 0.1, "");
     ImGui::SliderFloat("Ripple Size", &water_->ripple_size, 1, 20, "");

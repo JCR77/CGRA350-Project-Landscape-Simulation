@@ -12,6 +12,7 @@
 
 // project
 #include "terrainRenderer.hpp"
+#include "water/WaterRenderer.hpp"
 #include "cgra/cgra_geometry.hpp"
 #include "cgra/cgra_gui.hpp"
 #include "cgra/cgra_image.hpp"
@@ -73,42 +74,53 @@ void TerrainRenderer::renderGUI() {
 	if (ImGui::Button("New Seed")) {
 		genPermutations();
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+        // This tells the water renderer that it needs to update the 
+        // reflection and refraction textures
+        WaterRenderer::setSceneUpdated();
 	}
 
 	//chose terrain type
 	if (ImGui::Combo("Terrain Type", &fractalType, "Normal Terrain\0Smooth Valleys\0Hybrid Multifractal\0", 3)) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+        WaterRenderer::setSceneUpdated();
 	}
 
 	//terrain options 
 	if (ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f)) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+        WaterRenderer::setSceneUpdated();
 	}
 
 	if (ImGui::SliderFloat("Base Frequency", &baseFrequency, 0, 0.2, "%.3f")) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+        WaterRenderer::setSceneUpdated();
 	}
 
 	if (ImGui::SliderFloat("Frequency Multiplier", &frequencyMultiplier, 1, 5, "%.1f")) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+        WaterRenderer::setSceneUpdated();
 	}
 
 	if (ImGui::SliderFloat("Amptitude Multiplier", &amtitudeMultiplier, 0, 1, "%.2f")) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+        WaterRenderer::setSceneUpdated();
 	}
 
 	if (ImGui::SliderInt("Num Octaves", &numOctaves, 0, 10)) {
 		m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+        WaterRenderer::setSceneUpdated();
 	}
 	
 	//extra options for hybrid multifractal terrain type
 	if (fractalType == 2) {
 		if (ImGui::SliderFloat("Offset", &offset, -1, 1, "%.2f")) {
 			m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+            WaterRenderer::setSceneUpdated();
 		}
 
 		if (ImGui::SliderFloat("H", &H, 0, 1, "%.2f")) {
 			m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+            WaterRenderer::setSceneUpdated();
 		}
 	}
 

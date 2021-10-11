@@ -17,6 +17,19 @@
 class WaterRenderer
 {
 private:
+    /**
+     * True if the scene has been updated since the previous call to render.
+     * If true, the refraction and reflection textures should be re-rendered
+     * in the next render call.
+     * 
+     * Possible updates:
+     * - window resize
+     * - terrain changed shape/position
+     * - water height changed
+     * - camera view changed
+     */
+    static bool scene_updated;
+
     enum class Type
     {
         Reflection,
@@ -54,6 +67,8 @@ public:
     // disable copy constructors (for safety)
     WaterRenderer(const WaterRenderer &) = delete;
     WaterRenderer &operator=(const WaterRenderer &) = delete;
+
+    static void setSceneUpdated() { scene_updated = true; }
 
     // rendering callbacks (every frame)
     void render(const glm::mat4 &view, const glm::mat4 &proj);

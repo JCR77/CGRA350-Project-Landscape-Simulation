@@ -141,6 +141,7 @@ void Application::cursorPosCallback(double xpos, double ypos)
             m_yaw -= float(2 * pi<float>());
         else if (m_yaw < -pi<float>())
             m_yaw += float(2 * pi<float>());
+        WaterRenderer::setSceneUpdated();
     }
 
     // updated mouse position
@@ -160,6 +161,7 @@ void Application::scrollCallback(double xoffset, double yoffset)
 {
     (void)xoffset; // currently un-used
     m_distance *= pow(1.1f, -yoffset);
+    WaterRenderer::setSceneUpdated();
 }
 
 void Application::keyCallback(int key, int scancode, int action, int mods)
@@ -175,4 +177,5 @@ void Application::charCallback(unsigned int c)
 void Application::resize(int width, int height)
 {
     water_renderer->resize(width, height);
+    WaterRenderer::setSceneUpdated();
 }
