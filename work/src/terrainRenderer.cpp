@@ -15,13 +15,13 @@
 #include "water/WaterRenderer.hpp"
 #include "cgra/cgra_geometry.hpp"
 #include "cgra/cgra_gui.hpp"
-#include "cgra/cgra_image.hpp"
+//#include "cgra/cgra_image.hpp"
 #include "cgra/cgra_shader.hpp"
 #include "cgra/cgra_wavefront.hpp"
 
 
 using namespace std;
-using namespace cgra;
+using namespace terrain;
 using namespace glm;
 
 
@@ -33,15 +33,21 @@ void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, cons
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
 	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
 	glUniform4fv(glGetUniformLocation(shader, "uClipPlane"), 1, value_ptr(clip_plane));
+	glUniform1i(glGetUniformLocation(shader, "textureSampler0"), 3);
+	glUniform1i(glGetUniformLocation(shader, "textureSampler1"), 4);
+	glUniform1i(glGetUniformLocation(shader, "textureSampler2"), 5);
+	glUniform1f(glGetUniformLocation(shader, "scale"), scale);
+	//glUniform1fv(glGetUniformLocation(shader, "trasitionHeightOffsets"), 201*201, trasitionHeightOffsets);
 
-	//drawCylinder();
+	glBindTexture(GL_TEXTURE_2D, sandTexture);
+
 	mesh.draw(); // draw
 }
 
 
 TerrainRenderer::TerrainRenderer() {
 
-	shader_builder sb;
+	cgra::shader_builder sb;
 	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//terrain//color_vert.glsl"));
 	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//terrain//color_frag.glsl"));
 	GLuint shader = sb.build();
@@ -51,6 +57,53 @@ TerrainRenderer::TerrainRenderer() {
 
 	m_model.modelTransform = translate(mat4(1), vec3(-size / 2, 0, -size / 2));
 	m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	m_model.scale = scale;
+
+
+	//bind texture
+
+	unsigned int sandTexture;
+	glGenTextures(1, &sandTexture);
+	glActiveTexture(GL_TEXTURE0 + 3);
+	glBindTexture(GL_TEXTURE_2D, sandTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	textureImageSand = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\sand_texture.png"));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageSand.size.x, textureImageSand.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageSand.data.data());
+
+	m_model.sandTexture = sandTexture;
+
+
+
+	unsigned int grassTexture;
+	glGenTextures(1, &grassTexture);
+	glActiveTexture(GL_TEXTURE0 + 4);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	textureImageGrass = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\grass_texture.png"));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageGrass.size.x, textureImageGrass.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageGrass.data.data());
+
+	m_model.grassTexture = grassTexture;
+
+
+
+	unsigned int stoneTexture;
+	glGenTextures(1, &stoneTexture);
+	glActiveTexture(GL_TEXTURE0 + 5);
+	glBindTexture(GL_TEXTURE_2D, stoneTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	textureImageStone = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\stone_texture.png"));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageStone.size.x, textureImageStone.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageStone.data.data());
+
+	m_model.stoneTexture = stoneTexture;
 	
 }
 
@@ -64,6 +117,7 @@ TerrainRenderer::TerrainRenderer() {
 void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj, const vec4& clip_plane) {
 
 	// draw the model
+	m_model.scale = scale;
 	m_model.draw(view, proj, clip_plane);
 }
 
@@ -251,6 +305,15 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 		}
 	}
 
+
+	//generate texture transition offsets
+	for (int y = 0; y <= numTrianglesAcross; y++) {
+		for (int x = 0; x <= numTrianglesAcross; x++) {
+			int i = y*(numTrianglesAcross + 1) + x;
+			plane_mb.vertices[i].offset = homogeneousfbm(x * 1, y * 1, 5);
+		}
+	}
+
 	return plane_mb.build();
 }
 
@@ -258,7 +321,7 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) {
 
 	std::vector<vec3> vertices;
-	std::vector<vec3> normals;
+	std::vector<vec2> positions;
 	std::vector<int> indices;
 
 	float stepSize = size / numTrianglesAcross;
@@ -267,6 +330,7 @@ mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) 
 		for (int x = 0; x <= numTrianglesAcross; x++) {
 			//make vertex
 			vertices.push_back(vec3(x*stepSize, 0, y*stepSize));
+			positions.push_back(vec2(x,y));
 
 			//make triangles (populate index buffer)
 			if (x < numTrianglesAcross && y < numTrianglesAcross) {
@@ -290,7 +354,8 @@ mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) 
 		mb.push_vertex(mesh_vertex{
 						vertices[i], //point coordinates
 						vec3(0,1,0), //normal
-						vec2(0,0) }); //uv
+						positions[i],
+						0.0f}); //uv
 	}
 
 	for (int i = 0; i < indices.size(); i++) {

@@ -45,7 +45,7 @@ private:
     std::shared_ptr<SkyBox> sky;
 
     bool show_terrain = true;
-    bool show_water = true;
+    bool show_water = false;
     bool show_fog = false;
 
 public:
