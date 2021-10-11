@@ -26,33 +26,43 @@ out vec4 fb_color;
 
 void main() {
 
-	//calculate texture
+	//calculate textures for diff heights
+	vec3 xzTex0 = texture(textureSampler0, vec2(f_in.world_pos.x/25, f_in.world_pos.z/25)).rgb * abs(f_in.world_normal.y);
+	vec3 xyTex0 = texture(textureSampler0, vec2(f_in.world_pos.x/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.z);
+	vec3 zyTex0 = texture(textureSampler0, vec2(f_in.world_pos.z/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.x);
+	vec3 textureColor0 = (xzTex0 + xyTex0 + zyTex0);// / 3.0f;
 
-	vec3 xzTex;
-	vec3 xyTex;
-	vec3 zyTex;
-	if(f_in.world_pos.y/scale < 0 + f_in.transitionOffset){
-		xzTex = texture(textureSampler0, vec2(f_in.world_pos.x/25, f_in.world_pos.z/25)).rgb * abs(f_in.world_normal.y);
-		xyTex = texture(textureSampler0, vec2(f_in.world_pos.x/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.z);
-		zyTex = texture(textureSampler0, vec2(f_in.world_pos.z/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.x);
-	}else if(f_in.world_pos.y/scale < 1/3.0f + f_in.transitionOffset){
-		xzTex = texture(textureSampler1, vec2(f_in.world_pos.x/25, f_in.world_pos.z/25)).rgb * abs(f_in.world_normal.y);
-		xyTex = texture(textureSampler1, vec2(f_in.world_pos.x/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.z);
-		zyTex = texture(textureSampler1, vec2(f_in.world_pos.z/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.x);
-	}else{
-		xzTex = texture(textureSampler2, vec2(f_in.world_pos.x/25, f_in.world_pos.z/25)).rgb * abs(f_in.world_normal.y);
-		xyTex = texture(textureSampler2, vec2(f_in.world_pos.x/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.z);
-		zyTex = texture(textureSampler2, vec2(f_in.world_pos.z/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.x);
-	}
+	vec3 xzTex1 = texture(textureSampler1, vec2(f_in.world_pos.x/25, f_in.world_pos.z/25)).rgb * abs(f_in.world_normal.y);
+	vec3 xyTex1 = texture(textureSampler1, vec2(f_in.world_pos.x/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.z);
+	vec3 zyTex1 = texture(textureSampler1, vec2(f_in.world_pos.z/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.x);
+	vec3 textureColor1 = (xzTex1 + xyTex1 + zyTex1);// / 3.0f;
+
+	vec3 xzTex2 = texture(textureSampler2, vec2(f_in.world_pos.x/25, f_in.world_pos.z/25)).rgb * abs(f_in.world_normal.y);
+	vec3 xyTex2 = texture(textureSampler2, vec2(f_in.world_pos.x/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.z);
+	vec3 zyTex2 = texture(textureSampler2, vec2(f_in.world_pos.z/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.x);
+	vec3 textureColor2 = (xzTex2 + xyTex2 + zyTex2);// / 3.0f;
 	
-	vec3 textureColor = (xzTex + xyTex + zyTex);// / 3.0f;
+	//blend textures
+	float blendDist = 2.0f;
+	vec3 blendedTex;
+	if(f_in.world_pos.y/scale < 0.1 + f_in.transitionOffset){
+		float transitionHeight = (-0.05 + f_in.transitionOffset)*scale;
+		float blendAmount = (f_in.world_pos.y - (transitionHeight - blendDist)) / (2*blendDist);
+		blendAmount = clamp(blendAmount, 0, 1);
+		blendedTex = mix(textureColor0, textureColor1, blendAmount);
+	}else{
+		float transitionHeight = (0.3 + f_in.transitionOffset)*scale;
+		float blendAmount = (f_in.world_pos.y - (transitionHeight - blendDist)) / (2*blendDist);
+		blendAmount = clamp(blendAmount, 0, 1);
+		blendedTex = mix(textureColor1, textureColor2, blendAmount);
+	}
 
 
 
 	// calculate lighting (hack)
 	vec3 eye = normalize(-f_in.position);
 	float light = abs(dot(normalize(f_in.normal), eye));
-	vec3 color = mix(textureColor / 4, textureColor, light);
+	vec3 color = mix(blendedTex / 4, blendedTex, light);
 
 
 
