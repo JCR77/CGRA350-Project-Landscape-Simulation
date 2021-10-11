@@ -21,7 +21,10 @@ struct basic_terrain_model {
 	cgra::gl_mesh mesh;
 	glm::vec3 color{ 0.7 };
 	glm::mat4 modelTransform{ 1.0 };
-	GLuint texture;
+	GLuint grassTexture;
+	GLuint sandTexture;
+	GLuint stoneTexture;
+	float scale = 20;
 
 	void draw(const glm::mat4& view, const glm::mat4 proj, const glm::vec4 &clip_plane);
 };
@@ -69,7 +72,9 @@ private:
 	float offset = 0.7;
 	float H = 0.25;
 
-	cgra::rgba_image textureImage;
+	cgra::rgba_image textureImageGrass;
+	cgra::rgba_image textureImageSand;
+	cgra::rgba_image textureImageStone;
 
 public:
 	// setup

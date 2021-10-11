@@ -6,8 +6,6 @@ uniform mat4 uModelViewMatrix;
 uniform vec3 uColor;
 uniform vec4 uClipPlane;
 
-uniform sampler2D textureSampler;
-
 // mesh data
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;

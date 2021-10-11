@@ -32,9 +32,12 @@ void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, cons
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
 	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
 	glUniform4fv(glGetUniformLocation(shader, "uClipPlane"), 1, value_ptr(clip_plane));
-	glUniform1i(glGetUniformLocation(shader, "textureSampler"), 0);
+	glUniform1i(glGetUniformLocation(shader, "textureSampler0"), 0);
+	glUniform1i(glGetUniformLocation(shader, "textureSampler1"), 1);
+	glUniform1i(glGetUniformLocation(shader, "textureSampler2"), 2);
+	glUniform1f(glGetUniformLocation(shader, "scale"), scale);
 
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, stoneTexture);
 
 	mesh.draw(); // draw
 }
@@ -52,24 +55,53 @@ TerrainRenderer::TerrainRenderer() {
 
 	m_model.modelTransform = translate(mat4(1), vec3(-size / 2, 0, -size / 2));
 	m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+	m_model.scale = scale;
 
 
 	//bind texture
-	textureImage = rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\grass_texture.png"));
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
 
-	//set filtering and wrapping methods
+	unsigned int sandTexture;
+	glGenTextures(1, &sandTexture);
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_2D, sandTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	textureImageSand = rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\sand_texture.png"));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageSand.size.x, textureImageSand.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageSand.data.data());
 
-	//generate texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImage.size.x, textureImage.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.data.data());
+	m_model.sandTexture = sandTexture;
 
-	m_model.texture = texture;
+
+
+	unsigned int grassTexture;
+	glGenTextures(1, &grassTexture);
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	textureImageGrass = rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\grass_texture.png"));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageGrass.size.x, textureImageGrass.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageGrass.data.data());
+
+	m_model.grassTexture = grassTexture;
+
+
+
+	unsigned int stoneTexture;
+	glGenTextures(1, &stoneTexture);
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, stoneTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	textureImageStone = rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\stone_texture.png"));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageStone.size.x, textureImageStone.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageStone.data.data());
+
+	m_model.stoneTexture = stoneTexture;
 	
 }
 
@@ -83,6 +115,7 @@ TerrainRenderer::TerrainRenderer() {
 void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj, const vec4& clip_plane) {
 
 	// draw the model
+	m_model.scale = scale;
 	m_model.draw(view, proj, clip_plane);
 }
 
