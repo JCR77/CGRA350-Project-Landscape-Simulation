@@ -14,7 +14,7 @@
 #include "terrainRenderer.hpp"
 #include "cgra/cgra_geometry.hpp"
 #include "cgra/cgra_gui.hpp"
-#include "cgra/cgra_image.hpp"
+//#include "cgra/cgra_image.hpp"
 #include "cgra/cgra_shader.hpp"
 #include "cgra/cgra_wavefront.hpp"
 
@@ -32,8 +32,10 @@ void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, cons
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
 	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
 	glUniform4fv(glGetUniformLocation(shader, "uClipPlane"), 1, value_ptr(clip_plane));
+	glUniform1i(glGetUniformLocation(shader, "textureSampler"), 0);
 
-	//drawCylinder();
+	glBindTexture(GL_TEXTURE_2D, texture);
+
 	mesh.draw(); // draw
 }
 
@@ -50,6 +52,24 @@ TerrainRenderer::TerrainRenderer() {
 
 	m_model.modelTransform = translate(mat4(1), vec3(-size / 2, 0, -size / 2));
 	m_model.mesh = generateTerrain(size, size / squareSize, numOctaves);
+
+
+	//bind texture
+	textureImage = rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\grass_texture.png"));
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	//set filtering and wrapping methods
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//generate texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImage.size.x, textureImage.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.data.data());
+
+	m_model.texture = texture;
 	
 }
 
@@ -278,7 +298,7 @@ mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) 
 		mb.push_vertex(mesh_vertex{
 						vertices[i], //point coordinates
 						vec3(0,1,0), //normal
-						vec2(0,0) }); //uv
+						vec2(vertices[i].x, vertices[i].y) }); //uv
 	}
 
 	for (int i = 0; i < indices.size(); i++) {

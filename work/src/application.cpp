@@ -63,7 +63,7 @@ void Application::render()
 
     // draw
     terrain_renderer->render(view, proj);
-    water_renderer.render(view, proj);
+    //water_renderer.render(view, proj);
     //fog_renderer.render(view, proj);
 }
 

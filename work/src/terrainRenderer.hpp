@@ -10,6 +10,7 @@
 // project
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
+#include "cgra/cgra_image.hpp"
 
 
 // Basic model that holds the shader, mesh and transform for drawing.
@@ -67,6 +68,8 @@ private:
 
 	float offset = 0.7;
 	float H = 0.25;
+
+	cgra::rgba_image textureImage;
 
 public:
 	// setup
