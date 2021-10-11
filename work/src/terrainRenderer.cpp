@@ -20,7 +20,7 @@
 
 
 using namespace std;
-using namespace cgra;
+using namespace terrain;
 using namespace glm;
 
 
@@ -36,6 +36,7 @@ void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, cons
 	glUniform1i(glGetUniformLocation(shader, "textureSampler1"), 1);
 	glUniform1i(glGetUniformLocation(shader, "textureSampler2"), 2);
 	glUniform1f(glGetUniformLocation(shader, "scale"), scale);
+	//glUniform1fv(glGetUniformLocation(shader, "trasitionHeightOffsets"), 201*201, trasitionHeightOffsets);
 
 	glBindTexture(GL_TEXTURE_2D, stoneTexture);
 
@@ -45,7 +46,7 @@ void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, cons
 
 TerrainRenderer::TerrainRenderer() {
 
-	shader_builder sb;
+	cgra::shader_builder sb;
 	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//terrain//color_vert.glsl"));
 	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//terrain//color_frag.glsl"));
 	GLuint shader = sb.build();
@@ -68,7 +69,7 @@ TerrainRenderer::TerrainRenderer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	textureImageSand = rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\sand_texture.png"));
+	textureImageSand = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\sand_texture.png"));
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageSand.size.x, textureImageSand.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageSand.data.data());
 
 	m_model.sandTexture = sandTexture;
@@ -83,7 +84,7 @@ TerrainRenderer::TerrainRenderer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	textureImageGrass = rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\grass_texture.png"));
+	textureImageGrass = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\grass_texture.png"));
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageGrass.size.x, textureImageGrass.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageGrass.data.data());
 
 	m_model.grassTexture = grassTexture;
@@ -98,7 +99,7 @@ TerrainRenderer::TerrainRenderer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	textureImageStone = rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\stone_texture.png"));
+	textureImageStone = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\stone_texture.png"));
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageStone.size.x, textureImageStone.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageStone.data.data());
 
 	m_model.stoneTexture = stoneTexture;
@@ -292,6 +293,15 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 		}
 	}
 
+
+	//generate texture transition offsets
+	for (int y = 0; y <= numTrianglesAcross; y++) {
+		for (int x = 0; x <= numTrianglesAcross; x++) {
+			int i = y*(numTrianglesAcross + 1) + x;
+			plane_mb.vertices[i].offset = homogeneousfbm(x * 1, y * 1, 5);
+		}
+	}
+
 	return plane_mb.build();
 }
 
@@ -299,7 +309,7 @@ gl_mesh TerrainRenderer::generateTerrain(float size, int numTrianglesAcross, int
 mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) {
 
 	std::vector<vec3> vertices;
-	std::vector<vec3> normals;
+	std::vector<vec2> positions;
 	std::vector<int> indices;
 
 	float stepSize = size / numTrianglesAcross;
@@ -308,6 +318,7 @@ mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) 
 		for (int x = 0; x <= numTrianglesAcross; x++) {
 			//make vertex
 			vertices.push_back(vec3(x*stepSize, 0, y*stepSize));
+			positions.push_back(vec2(x,y));
 
 			//make triangles (populate index buffer)
 			if (x < numTrianglesAcross && y < numTrianglesAcross) {
@@ -331,7 +342,8 @@ mesh_builder TerrainRenderer::generatePlane(float size, int numTrianglesAcross) 
 		mb.push_vertex(mesh_vertex{
 						vertices[i], //point coordinates
 						vec3(0,1,0), //normal
-						vec2(vertices[i].x, vertices[i].y) }); //uv
+						positions[i],
+						0.0f}); //uv
 	}
 
 	for (int i = 0; i < indices.size(); i++) {

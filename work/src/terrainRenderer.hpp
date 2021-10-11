@@ -9,7 +9,7 @@
 
 // project
 #include "opengl.hpp"
-#include "cgra/cgra_mesh.hpp"
+#include "terrain_mesh.hpp"
 #include "cgra/cgra_image.hpp"
 
 
@@ -18,13 +18,16 @@
 // including textures for texture mapping etc.
 struct basic_terrain_model {
 	GLuint shader = 0;
-	cgra::gl_mesh mesh;
+	terrain::gl_mesh mesh;
 	glm::vec3 color{ 0.7 };
 	glm::mat4 modelTransform{ 1.0 };
 	GLuint grassTexture;
 	GLuint sandTexture;
 	GLuint stoneTexture;
 	float scale = 20;
+	GLuint offsetBuffer = 0;
+	std::vector<float> offsets = std::vector<float>();
+	//float trasitionHeightOffsets[201 * 201];
 
 	void draw(const glm::mat4& view, const glm::mat4 proj, const glm::vec4 &clip_plane);
 };
@@ -97,8 +100,8 @@ private:
 	void genPermutations();
 
 	//generate terrain	
-	cgra::gl_mesh generateTerrain(float size, int numTrianglesAcross, int numOctaves);
-	cgra::mesh_builder generatePlane(float size, int numTrianglesAcross);
+	terrain::gl_mesh generateTerrain(float size, int numTrianglesAcross, int numOctaves);
+	terrain::mesh_builder generatePlane(float size, int numTrianglesAcross);
 
 	float homogeneousfbm(float x, float y, int numOctaves);
 	float heterogeneousfbm(float x, float y, int numOctaves);

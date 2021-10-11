@@ -18,6 +18,7 @@ in VertexData {
 	vec3 normal;
 	vec3 world_normal;
 	vec2 textureCoord;
+	float transitionOffset;
 } f_in;
 
 // framebuffer output
@@ -30,11 +31,11 @@ void main() {
 	vec3 xzTex;
 	vec3 xyTex;
 	vec3 zyTex;
-	if(f_in.world_pos.y/scale < 0){
+	if(f_in.world_pos.y/scale < 0 + f_in.transitionOffset){
 		xzTex = texture(textureSampler0, vec2(f_in.world_pos.x/25, f_in.world_pos.z/25)).rgb * abs(f_in.world_normal.y);
 		xyTex = texture(textureSampler0, vec2(f_in.world_pos.x/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.z);
 		zyTex = texture(textureSampler0, vec2(f_in.world_pos.z/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.x);
-	}else if(f_in.world_pos.y/scale < 1/3.0f){
+	}else if(f_in.world_pos.y/scale < 1/3.0f + f_in.transitionOffset){
 		xzTex = texture(textureSampler1, vec2(f_in.world_pos.x/25, f_in.world_pos.z/25)).rgb * abs(f_in.world_normal.y);
 		xyTex = texture(textureSampler1, vec2(f_in.world_pos.x/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.z);
 		zyTex = texture(textureSampler1, vec2(f_in.world_pos.z/25, f_in.world_pos.y)).rgb * abs(f_in.world_normal.x);
