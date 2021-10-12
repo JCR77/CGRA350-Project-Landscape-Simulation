@@ -154,7 +154,10 @@ void WaterRenderer::renderRefraction(const glm::mat4 &view, const glm::mat4 &pro
     glBindFramebuffer(GL_FRAMEBUFFER, refraction_fbo_);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window_size_.x, window_size_.y); // TODO
-    terrain_renderer_.lock()->render(view, proj, getClipPlane(Type::Refraction));
+
+    if (show_terrain_)
+        terrain_renderer_.lock()->render(view, proj, getClipPlane(Type::Refraction));
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_CULL_FACE);
 }
@@ -180,7 +183,9 @@ void WaterRenderer::renderReflection(const glm::mat4 &view, const glm::mat4 &pro
     // sky also needs to be reflected in the water
     sky_.lock()->draw(reflection_view, proj);
 
-    terrain_renderer_.lock()->render(reflection_view, proj, getClipPlane(Type::Reflection));
+    if (show_terrain_)
+        terrain_renderer_.lock()->render(reflection_view, proj, getClipPlane(Type::Reflection));
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_CULL_FACE);
 }
@@ -210,4 +215,10 @@ void WaterRenderer::resize(int width, int height)
     destroy();
     initFbos(); // create new fbos with updated window size
     water_->setTextures(refraction_texture_, reflection_texture_);
+}
+
+void WaterRenderer::setShowTerrain(bool show_terrain)
+{
+    show_terrain_ = show_terrain;
+    setSceneUpdated();
 }

@@ -25,6 +25,7 @@ Application::Application(GLFWwindow *window) : m_window(window)
     terrain_renderer = make_shared<TerrainRenderer>();
     sky = make_shared<SkyBox>(200.f);
     water_renderer = make_shared<WaterRenderer>(terrain_renderer, sky);
+    water_renderer->setShowTerrain(show_terrain);
 }
 
 void Application::render()
@@ -96,7 +97,8 @@ void Application::renderGUI()
         rgba_image::screenshot(true);
 
     ImGui::Separator();
-    ImGui::Checkbox("Terrain", &show_terrain);
+    if (ImGui::Checkbox("Terrain", &show_terrain))
+        water_renderer->setShowTerrain(show_terrain);
     ImGui::SameLine();
     ImGui::Checkbox("Water", &show_water);
     ImGui::SameLine();
