@@ -81,8 +81,10 @@ private:
 	float H = 0.25;
 
 	//errosion
-	bool shouldErodeTerrain = false;
 	int erodeIter = 0;
+	bool shouldErodeTerrain = false;
+	int terrainType = 0; //0 = terraces,	1 = realistic	
+
 	float talusThreshold = 0.7f;
 	float sedimentvolume = 0.3;
 
@@ -133,7 +135,6 @@ private:
 	float hybridMultifractal(float x, float y, int numOctaves);
 
 	std::vector<std::vector<float>> erodeTerrainTerraces(std::vector<std::vector<float>> heightMap, int size, int numIterations);
-
 	std::vector<std::vector<float>> erodeTerrainRealistic(std::vector<std::vector<float>> heightMap, int size, int numIterations, bool rain);
 
 };

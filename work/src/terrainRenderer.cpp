@@ -123,7 +123,11 @@ void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj, const
 
 	if (shouldErodeTerrain && erodeIter < rainIter + evapIter) {
 
-		m_model.heightMap = erodeTerrainRealistic(m_model.heightMap, m_model.heightMap.size(), 1, erodeIter < rainIter);
+		if (terrainType == 0) {
+			m_model.heightMap = erodeTerrainTerraces(m_model.heightMap, m_model.heightMap.size(), 1);
+		}else {
+			m_model.heightMap = erodeTerrainRealistic(m_model.heightMap, m_model.heightMap.size(), 1, erodeIter < rainIter);
+		}
 		erodeIter++;
 
 		//generate mesh
@@ -154,6 +158,13 @@ void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj, const
 		}
 
 		m_model.mesh = plane_mb.build();
+
+
+		if (erodeIter % 10 == 0 ) { //every 10th iteration
+			// This tells the water renderer that it needs to update the 
+			// reflection and refraction textures
+			WaterRenderer::setSceneUpdated();
+		}
 		
 	}
 
@@ -173,76 +184,98 @@ void TerrainRenderer::renderGUI() {
         
 	}
 
-	//chose terrain type
-	if (ImGui::Combo("Terrain Type", &fractalType, "Normal Terrain\0Smooth Valleys\0Hybrid Multifractal\0", 3)) {
-		shouldErodeTerrain = false;
-		generateTerrain(numOctaves);
-	}
+	//Base Terrain Options
+	if (ImGui::CollapsingHeader("Base Terrain")) {
+		ImGui::Indent();
 
-	//terrain options 
-	if (ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f)) {
-		generateTerrain(numOctaves);
-	}
-
-	if (ImGui::SliderFloat("Base Frequency", &baseFrequency, 0, 0.2, "%.3f")) {
-		generateTerrain(numOctaves);
-	}
-
-	if (ImGui::SliderFloat("Frequency Multiplier", &frequencyMultiplier, 1, 5, "%.1f")) {
-		generateTerrain(numOctaves);
-	}
-
-	if (ImGui::SliderFloat("Amptitude Multiplier", &amtitudeMultiplier, 0, 1, "%.2f")) {
-		generateTerrain(numOctaves);
-	}
-
-	if (ImGui::SliderInt("Num Octaves", &numOctaves, 0, 10)) {
-		generateTerrain(numOctaves);
-	}
-	
-	//extra options for hybrid multifractal terrain type
-	if (fractalType == 2) {
-		if (ImGui::SliderFloat("Offset", &offset, -1, 1, "%.2f")) {
+		//chose terrain type
+		if (ImGui::Combo("Terrain Type", &fractalType, "Normal Terrain\0Smooth Valleys\0Hybrid Multifractal\0", 3)) {
+			shouldErodeTerrain = false;
 			generateTerrain(numOctaves);
 		}
 
-		if (ImGui::SliderFloat("H", &H, 0, 1, "%.2f")) {
+		//terrain options 
+		if (ImGui::SliderFloat("Scale", &scale, 1, 100, "%.0f", 1.0f)) {
 			generateTerrain(numOctaves);
 		}
+
+		if (ImGui::SliderFloat("Base Frequency", &baseFrequency, 0, 0.2, "%.3f")) {
+			generateTerrain(numOctaves);
+		}
+
+		if (ImGui::SliderFloat("Frequency Multiplier", &frequencyMultiplier, 1, 5, "%.1f")) {
+			generateTerrain(numOctaves);
+		}
+
+		if (ImGui::SliderFloat("Amptitude Multiplier", &amtitudeMultiplier, 0, 1, "%.2f")) {
+			generateTerrain(numOctaves);
+		}
+
+		if (ImGui::SliderInt("Num Octaves", &numOctaves, 0, 10)) {
+			generateTerrain(numOctaves);
+		}
+
+		//extra options for hybrid multifractal terrain type
+		if (fractalType == 2) {
+			if (ImGui::SliderFloat("Offset", &offset, -1, 1, "%.2f")) {
+				generateTerrain(numOctaves);
+			}
+
+			if (ImGui::SliderFloat("H", &H, 0, 1, "%.2f")) {
+				generateTerrain(numOctaves);
+			}
+		}
+
+		ImGui::Unindent();
+
 	}
 
-	ImGui::Separator();
 
-	ImGui::SliderFloat("blendDist", &m_model.blendDist, 0, 4, "%.2f");
-	ImGui::SliderFloat("transition 1", &m_model.transitionHeight1, -1, 1, "%.2f");
-	ImGui::SliderFloat("transition 2", &m_model.transitionHeight2, -1, 1, "%.2f");
+	//Texture Options
+	if (ImGui::CollapsingHeader("Texture")) {
+		ImGui::Indent();
 
+		ImGui::SliderFloat("blendDist", &m_model.blendDist, 0, 4, "%.2f");
+		ImGui::SliderFloat("transition 1", &m_model.transitionHeight1, -1, 1, "%.2f");
+		ImGui::SliderFloat("transition 2", &m_model.transitionHeight2, -1, 1, "%.2f");
 
-	ImGui::Separator();
-
-	if (ImGui::Button("Erode Terrain")) {
-		shouldErodeTerrain = !shouldErodeTerrain;
-		generateTerrain(numOctaves);
-		erodeIter = 0;
+		ImGui::Unindent();
 	}
 
-	ImGui::SameLine();
 
-	ImGui::Text("iter = %d", erodeIter);
+	//Erosion Options
+	if (ImGui::CollapsingHeader("Erosion")) {
+		ImGui::Indent();
 
-	ImGui::InputFloat("rain iterations", &rainIter);
-	ImGui::InputFloat("evaporate iterations", &evapIter);
+		if (ImGui::Button("Erode Terrain")) {
+			shouldErodeTerrain = !shouldErodeTerrain;
+			generateTerrain(numOctaves);
+			erodeIter = 0;
+		}
 
-	if (ImGui::SliderFloat("Talus Threshold", &talusThreshold, 0, 2, "%.2f")) {
-		generateTerrain(numOctaves);
+		ImGui::SameLine();
+
+		ImGui::Text("iter = %d", erodeIter);
+
+		ImGui::Combo("Erosion Type", &terrainType, "Terraces\0Realistic\0", 2);
+
+		ImGui::InputFloat("rain iterations", &rainIter);
+		ImGui::InputFloat("evaporate iterations", &evapIter);
+
+		if (ImGui::SliderFloat("Talus Threshold", &talusThreshold, 0, 2, "%.2f")) {
+			generateTerrain(numOctaves);
+		}
+		ImGui::InputFloat("erosion sediment volume", &sedimentvolume);
+
+
+		ImGui::InputFloat("rain", &kr);
+		ImGui::InputFloat("desolve", &ks);
+		ImGui::InputFloat("Evaporation", &ke);
+		ImGui::InputFloat("Capacity", &kc);
+
+		ImGui::Unindent();
 	}
-	ImGui::InputFloat("erosion sediment volume", &sedimentvolume);
-	
-	
-	ImGui::InputFloat("rain", &kr);
-	ImGui::InputFloat("desolve", &ks);
-	ImGui::InputFloat("Evaporation", &ke);
-	ImGui::InputFloat("Capacity", &kc);
+
 }
 
 

@@ -105,20 +105,29 @@ void Application::renderGUI()
 
     if (show_terrain)
     {
-        if (ImGui::CollapsingHeader("Terrain##ID1"))
+        if (ImGui::CollapsingHeader("Terrain##ID1")) {
+            ImGui::Indent();
             terrain_renderer->renderGUI();
+            ImGui::Unindent();
+        }
     }
 
     if (show_water)
     {
-        if (ImGui::CollapsingHeader("Water##ID1"))
+        if (ImGui::CollapsingHeader("Water##ID1")) {
+            ImGui::Indent();
             water_renderer->renderGUI();
+            ImGui::Unindent();
+        }
     }
 
     if (show_fog)
     {
-        if (ImGui::CollapsingHeader("Fog##ID1"))
+        if (ImGui::CollapsingHeader("Fog##ID1")) {
+            ImGui::Indent();
             fog_renderer.renderGUI();
+            ImGui::Unindent();
+        }
     }
 
     // finish creating window
