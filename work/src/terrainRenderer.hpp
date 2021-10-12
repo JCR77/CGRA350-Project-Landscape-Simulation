@@ -29,6 +29,10 @@ struct basic_terrain_model {
 	std::vector<float> offsets = std::vector<float>();
 	std::vector<std::vector<float>> heightMap;
 
+	float blendDist = 2.0f;
+	float transitionHeight1 = 0.0f;
+	float transitionHeight2 = 0.5f;
+
 	void draw(const glm::mat4& view, const glm::mat4 proj, const glm::vec4 &clip_plane);
 };
 
@@ -64,7 +68,7 @@ private:
 							84,204,176,115,121,50,45,127, 4,150,254,138,236,205,93,222,114,
 							67,29,24,72,243,141,128,195,78,66,215,61,156,180};
 
-	//UI
+	//base terrain
 	float scale = 20;
 	float baseFrequency = 0.04;
 	int numOctaves = 4;
@@ -76,6 +80,7 @@ private:
 	float offset = 0.7;
 	float H = 0.25;
 
+	//errosion
 	bool shouldErodeTerrain = false;
 	int erodeIter = 0;
 	float talusThreshold = 0.7f;
@@ -92,9 +97,11 @@ private:
 	std::vector<std::vector<float>> waterVolume = std::vector<std::vector<float>>();
 	std::vector<std::vector<float>> sedimentVolume = std::vector<std::vector<float>>();
 
+	//textures
 	cgra::rgba_image textureImageGrass;
 	cgra::rgba_image textureImageSand;
 	cgra::rgba_image textureImageStone;
+
 
 public:
 	// setup

@@ -37,7 +37,9 @@ void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, cons
 	glUniform1i(glGetUniformLocation(shader, "textureSampler1"), 4);
 	glUniform1i(glGetUniformLocation(shader, "textureSampler2"), 5);
 	glUniform1f(glGetUniformLocation(shader, "scale"), scale);
-	//glUniform1fv(glGetUniformLocation(shader, "trasitionHeightOffsets"), 201*201, trasitionHeightOffsets);
+	glUniform1f(glGetUniformLocation(shader, "blendDist"), blendDist);
+	glUniform1f(glGetUniformLocation(shader, "transitionHeight1"), transitionHeight1);
+	glUniform1f(glGetUniformLocation(shader, "transitionHeight2"), transitionHeight2);
 
 	glBindTexture(GL_TEXTURE_2D, sandTexture);
 
@@ -208,6 +210,13 @@ void TerrainRenderer::renderGUI() {
 			generateTerrain(numOctaves);
 		}
 	}
+
+	ImGui::Separator();
+
+	ImGui::SliderFloat("blendDist", &m_model.blendDist, 0, 4, "%.2f");
+	ImGui::SliderFloat("transition 1", &m_model.transitionHeight1, -1, 1, "%.2f");
+	ImGui::SliderFloat("transition 2", &m_model.transitionHeight2, -1, 1, "%.2f");
+
 
 	ImGui::Separator();
 
