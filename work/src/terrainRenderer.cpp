@@ -70,7 +70,7 @@ TerrainRenderer::TerrainRenderer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	textureImageSand = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\sand_texture.png"));
+	textureImageSand = cgra::rgba_image(CGRA_SRCDIR + std::string("//res//textures//sand_texture.png"));
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageSand.size.x, textureImageSand.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageSand.data.data());
 
 	m_model.sandTexture = sandTexture;
@@ -85,7 +85,7 @@ TerrainRenderer::TerrainRenderer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	textureImageGrass = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\grass_texture.png"));
+	textureImageGrass = cgra::rgba_image(CGRA_SRCDIR + std::string("//res//textures//grass_texture.png"));
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageGrass.size.x, textureImageGrass.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageGrass.data.data());
 
 	m_model.grassTexture = grassTexture;
@@ -100,7 +100,7 @@ TerrainRenderer::TerrainRenderer() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	textureImageStone = cgra::rgba_image(CGRA_SRCDIR + std::string("\\res\\textures\\stone_texture.png"));
+	textureImageStone = cgra::rgba_image(CGRA_SRCDIR + std::string("//res//textures//stone_texture.png"));
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureImageStone.size.x, textureImageStone.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImageStone.data.data());
 
 	m_model.stoneTexture = stoneTexture;

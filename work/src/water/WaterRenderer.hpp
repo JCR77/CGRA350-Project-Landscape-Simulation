@@ -30,6 +30,8 @@ private:
      */
     static bool scene_updated;
 
+    bool show_terrain_ = true;
+
     enum class Type
     {
         Reflection,
@@ -69,6 +71,7 @@ public:
     WaterRenderer &operator=(const WaterRenderer &) = delete;
 
     static void setSceneUpdated() { scene_updated = true; }
+    void setShowTerrain(bool show_terrain);
 
     // rendering callbacks (every frame)
     void render(const glm::mat4 &view, const glm::mat4 &proj);
