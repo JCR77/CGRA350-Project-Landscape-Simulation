@@ -561,6 +561,34 @@ vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float
 				
 				//Thermal Erosion
 				if (erodeIter % 4 == 0) {
+
+					float totalDiff = 0;
+					float diffMax = 0;
+					for (int i = -1; i <= 1; i++) {
+						for (int j = -1; j <= 1; j++) {
+							float diff = heightMap[y][x] - heightMap[y + j][x + i];
+							if (diff > diffMax) {
+								diffMax = diff;
+							}
+							if(diff > talusThreshold)
+								totalDiff += diff;
+						}
+					}
+					if (totalDiff > 0) {
+						for (int i = -1; i <= 1; i++) {
+							for (int j = -1; j <= 1; j++) {
+								float diff = heightMap[y][x] - heightMap[y + j][x + i];
+								if (diff > talusThreshold) {
+									float moveAmount = sedimentvolume*(diffMax - talusThreshold)*(diff/totalDiff);
+									heightMap[y][x] -= moveAmount;
+									heightMap[y + j][x + i] += moveAmount;
+								}
+							}
+						}
+					}
+
+
+					/*
 					//get neightbor with steapest slope
 					float dmax = 0;
 					vec2 neigh = vec2(0, 0);
@@ -583,6 +611,7 @@ vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float
 						heightMap[neigh.y][neigh.x] += deltaH;
 
 					}
+					*/
 				}
 				
 
