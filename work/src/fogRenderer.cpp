@@ -21,6 +21,11 @@ using namespace std;
 using namespace cgra;
 using namespace glm;
 
+static double framerate = 1.0 / 60.0;
+double previousTime = glfwGetTime();
+double deltaTime = 0;
+double currentTime = 0;
+
 
 void basic_fog_model::draw(const glm::mat4& view, const glm::mat4 proj) {
 	mat4 modelview = view * modelTransform;
@@ -54,6 +59,15 @@ FogRenderer::FogRenderer() {
 
 
 void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
+	currentTime = glfwGetTime();
+	deltaTime += (currentTime - previousTime) / framerate;
+	previousTime = currentTime;
+	if (deltaTime >= 1.0) {
+		frameIndex = frameIndex + indexSpeed;
+		deltaTime = 0;
+	}
+	viewMatrix = view;
+	projectionMatrix = proj;
 	m_model.draw(view, proj);
 	int w, h;
 	glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
@@ -67,6 +81,9 @@ void FogRenderer::renderGUI() {
 	// example of how to use input boxes
 	ImGui::InputFloat("Near", &near);
 	ImGui::InputFloat("Far", &far);
+	ImGui::InputFloat("Speed", &indexSpeed);
+	ImGui::InputFloat("Amplitude", &amplitude);
+	ImGui::InputFloat("Period", &period);
 	if (ImGui::Button("Enable/Disable Fog")) 
 	{
 		if (state == 0.0f)

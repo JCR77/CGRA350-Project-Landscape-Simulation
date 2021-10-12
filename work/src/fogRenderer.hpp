@@ -49,4 +49,13 @@ public:
 	float state = 0.0f;
 	float near = 0.1f;
 	float far = 300.0f;
+
+	//Matricies
+	glm::mat4 viewMatrix;
+	glm::mat4 projectionMatrix;
+
+	float frameIndex = 0;
+	float indexSpeed = 0.05;
+	float amplitude = 0.05;
+	float period = 0.5;
 };

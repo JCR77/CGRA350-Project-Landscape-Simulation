@@ -1,6 +1,9 @@
 #version 330 core
 out vec4 FragColor;
 
+#define PI 3.1415926538
+#define PI2 6.2831853071
+
 in vec2 TexCoords;
 
 uniform sampler2D originalOutput;
@@ -10,11 +13,14 @@ uniform float near;
 uniform float far;
 uniform float state;
 
+uniform float amplitude;//How high and low the depth values get
+uniform float period;//Period between wave points being the same value
+
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelViewMatrix;
 uniform vec3 uColor;
 
-vec3 cIn;
+uniform float waveOffset;
 
 // viewspace data (this must match the output of the fragment shader)
 in VertexData {
@@ -38,32 +44,30 @@ float logisticDepth(float depth)
 
 }
 
+vec3 cosWave( vec3 p ){
+    float axis = p.x;//Axis determines what axis the waves are on. Operating on depth so can never be z.
+    float z =  amplitude * cos( (PI2/period) * (p.x + waveOffset));//
+    return vec3(p.x, p.y, p.z + z);//
+}
+
 void main()
 {
 
     //Original Output
     //FragColor = vec4(texture(originalOutput, TexCoords).rgb,1);
-    cIn = texture(originalOutput, TexCoords).rgb;
-
-
-    //Fake Fog
-    //float depth = logisticDepth(texture(depthBuffer, TexCoords.st).r);
-    //FragColor = vec4(cIn, 1.0f) * (1.0f - depth) + vec4(depth * vec3(0.85f,0.85f,0.90f) , 1.0f);
-
-    //Depthmap(Linear Version)
-    //FragColor = vec4(vec3(linearizeDepth(texture(depthBuffer, TexCoords.st).r) / far), 1.0f);
-
-    //Final Output
-    //FragColor = f() * cIn + (1 - f()) * cFog;
+    vec3 cIn = texture(originalOutput, TexCoords).rgb;
+    vec3 cfog = texture(fogTexture, TexCoords).rgb;
+    float depth = texture(depthBuffer, TexCoords.st).r;
 
     if(state >= 1.0f)
     {
         float depth = logisticDepth(texture(depthBuffer, TexCoords.st).r);
-        FragColor = vec4(cIn, 1.0f) * (1.0f - depth) + vec4(depth * vec3(0.85f,0.85f,0.90f) , 1.0f);
+        depth = cosWave(vec3(TexCoords.x,TexCoords.y,depth)).z;
+        depth = clamp(depth, 0.0f, 1.0f);
+        FragColor = vec4(cIn, 1.0f) * (1.0f - depth) + vec4(depth * cfog , 1.0f);
     }
     else
     {
         FragColor = vec4(texture(originalOutput, TexCoords).rgb,1);
-    }
-    
+    }  
 }

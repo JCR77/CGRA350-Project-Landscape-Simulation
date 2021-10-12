@@ -1,3 +1,4 @@
+#define GLM_ENABLE_EXPERIMENTAL
 
 // std
 #include <iostream>
@@ -10,6 +11,8 @@
 #include "cgra/cgra_gui.hpp"
 #include "cgra/cgra_shader.hpp"
 #include "cgra/cgra_image.hpp"
+#include <glm/gtx/string_cast.hpp>
+
 
 
 using namespace std;
@@ -216,12 +219,21 @@ int main() {
 		glUniform1i(glGetUniformLocation(shader, "originalOutput"),0);
 		glUniform1i(glGetUniformLocation(shader, "depthBuffer"), 1);
 		glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
+
+		glUniform1f(glGetUniformLocation(shader, "waveOffset"), application.fog_renderer.frameIndex);
+		glUniform1f(glGetUniformLocation(shader, "amplitude"), application.fog_renderer.amplitude);
+		glUniform1f(glGetUniformLocation(shader, "period"), application.fog_renderer.period);
 		
 
 		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer.near);
 		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer.far);
 
 		glUniform1f(glGetUniformLocation(shader, "state"), application.fog_renderer.state);
+		glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(application.fog_renderer.projectionMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(application.fog_renderer.viewMatrix));
+
+		//std::cout << glm::to_string(application.fog_renderer.viewMatrix) << std::endl;
+
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureColorBuffer); // color attachment texture
