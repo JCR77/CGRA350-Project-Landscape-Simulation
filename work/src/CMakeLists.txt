@@ -13,6 +13,7 @@ add_executable(${CGRA_PROJECT} ${sources})
 # list your subdirectories here #
 # ----------------------------- #
 add_subdirectory(cgra)
+add_subdirectory(water)
 
 #########################################################
 # Link and Build Executable
