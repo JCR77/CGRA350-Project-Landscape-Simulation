@@ -66,7 +66,7 @@ private:
 	//UI
 	float scale = 20;
 	float baseFrequency = 0.04;
-	int numOctaves = 3;
+	int numOctaves = 4;
 	float frequencyMultiplier = 2;
 	float amtitudeMultiplier = 0.5;
 
@@ -74,6 +74,9 @@ private:
 
 	float offset = 0.7;
 	float H = 0.25;
+
+	bool shouldErodeTerrain = false;
+	float talusThreshold = 0.8f;
 
 	cgra::rgba_image textureImageGrass;
 	cgra::rgba_image textureImageSand;
@@ -100,11 +103,15 @@ private:
 	void genPermutations();
 
 	//generate terrain	
-	terrain::gl_mesh generateTerrain(float size, int numTrianglesAcross, int numOctaves);
+	void generateTerrain(float size, int numTrianglesAcross, int numOctaves);
 	terrain::mesh_builder generatePlane(float size, int numTrianglesAcross);
 
 	float homogeneousfbm(float x, float y, int numOctaves);
 	float heterogeneousfbm(float x, float y, int numOctaves);
 	float hybridMultifractal(float x, float y, int numOctaves);
+
+	std::vector<std::vector<float>> erodeTerrainTerraces(std::vector<std::vector<float>> heightMap, int size, int numIterations);
+
+	std::vector<std::vector<float>> erodeTerrainRealistic(std::vector<std::vector<float>> heightMap, int size, int numIterations);
 
 };
