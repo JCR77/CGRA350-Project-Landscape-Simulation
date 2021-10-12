@@ -40,6 +40,7 @@ namespace terrain {
 		glm::vec3 norm{0};
 		glm::vec2 uv{0};
 		float offset;
+		float waterVolume = 0;
 	};
 
 

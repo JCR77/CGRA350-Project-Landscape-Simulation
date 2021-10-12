@@ -27,7 +27,7 @@ struct basic_terrain_model {
 	float scale = 20;
 	GLuint offsetBuffer = 0;
 	std::vector<float> offsets = std::vector<float>();
-	//float trasitionHeightOffsets[201 * 201];
+	std::vector<std::vector<float>> heightMap;
 
 	void draw(const glm::mat4& view, const glm::mat4 proj, const glm::vec4 &clip_plane);
 };
@@ -43,8 +43,9 @@ private:
 
 	// geometry
 	basic_terrain_model m_model;
-	float size = 100;
+	float worldSize = 100;
 	float squareSize = 0.5;
+	float mapSize = worldSize / squareSize + 1;
 
 	//noise
 	int permutations[256] = {151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,
@@ -76,7 +77,20 @@ private:
 	float H = 0.25;
 
 	bool shouldErodeTerrain = false;
-	float talusThreshold = 0.8f;
+	int erodeIter = 0;
+	float talusThreshold = 0.7f;
+	float sedimentvolume = 0.3;
+
+	float rainIter = 20;
+	float evapIter = 40;
+
+	float kr = 0.1;
+	float ks = 0.5;
+	float ke = 0.5;
+	float kc = 0.1;
+
+	std::vector<std::vector<float>> waterVolume = std::vector<std::vector<float>>();
+	std::vector<std::vector<float>> sedimentVolume = std::vector<std::vector<float>>();
 
 	cgra::rgba_image textureImageGrass;
 	cgra::rgba_image textureImageSand;
@@ -103,8 +117,9 @@ private:
 	void genPermutations();
 
 	//generate terrain	
-	void generateTerrain(float size, int numTrianglesAcross, int numOctaves);
-	terrain::mesh_builder generatePlane(float size, int numTrianglesAcross);
+	void generateTerrain(int numOctaves);
+	terrain::mesh_builder generatePlane();
+	//terrain::mesh_builder generateMeshFromHeightMap(std::vector<std::vector<float>> heightMap, int size, int numTriangles);
 
 	float homogeneousfbm(float x, float y, int numOctaves);
 	float heterogeneousfbm(float x, float y, int numOctaves);
@@ -112,6 +127,6 @@ private:
 
 	std::vector<std::vector<float>> erodeTerrainTerraces(std::vector<std::vector<float>> heightMap, int size, int numIterations);
 
-	std::vector<std::vector<float>> erodeTerrainRealistic(std::vector<std::vector<float>> heightMap, int size, int numIterations);
+	std::vector<std::vector<float>> erodeTerrainRealistic(std::vector<std::vector<float>> heightMap, int size, int numIterations, bool rain);
 
 };

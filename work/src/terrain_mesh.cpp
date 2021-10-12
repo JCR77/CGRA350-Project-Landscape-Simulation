@@ -62,6 +62,9 @@ namespace terrain {
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(mesh_vertex), (void*)(offsetof(mesh_vertex, offset)));
 
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(mesh_vertex), (void*)(offsetof(mesh_vertex, waterVolume)));
+
 
 		// IBO
 		//

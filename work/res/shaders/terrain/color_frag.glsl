@@ -19,6 +19,7 @@ in VertexData {
 	vec3 world_normal;
 	vec2 textureCoord;
 	float transitionOffset;
+	float waterVolume;
 } f_in;
 
 // framebuffer output
@@ -57,7 +58,7 @@ void main() {
 		blendedTex = mix(textureColor1, textureColor2, blendAmount);
 	}
 
-
+	blendedTex = mix(blendedTex, vec3(0,0,1), f_in.waterVolume);
 
 	// calculate lighting (hack)
 	vec3 eye = normalize(-f_in.position);
