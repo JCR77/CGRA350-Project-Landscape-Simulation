@@ -464,10 +464,10 @@ vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float
 
 				//Hydrolic Erosion
 
-				float kr = 0.5;
-				float ks = 0.8;
-				float ke = 0.2;
-				float kc = 0.8;
+				float kr = 0.1;
+				float ks = 0.1;
+				float ke = 0.5;
+				float kc = 0.1;
 
 
 				//add water (rain)
@@ -482,7 +482,27 @@ vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float
 
 
 				//transport water with sediment in it
-				
+				float totalDiff = 0;
+				for (int i = -1; i <= 1; i++) {
+					for (int j = -1; j <= 1; j++) {
+						float diff = fmax(0.0f, (heightMap[y][x] + waterVolume[y][x]) - (heightMap[y + j][x + i] + waterVolume[y + j][x + i]));
+						totalDiff += diff;
+					}
+				}
+				float totalWaterMoveAmount = fmax(0.0f, fmin(waterVolume[y][x], totalDiff / 2.0f));
+				for (int i = -1; i <= 1; i++) {
+					for (int j = -1; j <= 1; j++) {
+						float diff = fmax(0.0f, (heightMap[y][x] + waterVolume[y][x]) - (heightMap[y + j][x + i] + waterVolume[y + j][x + i]));
+						float waterMoveAmount = (diff / totalDiff)* totalWaterMoveAmount;
+						float moveSedimentAmount = (waterMoveAmount / waterVolume[y][x]) * sedimentVolume[y][x];
+						waterVolume[y][x] -= waterMoveAmount;
+						sedimentVolume[y][x] -= moveSedimentAmount;
+						waterVolume[y+j][x+i] += waterMoveAmount;
+						sedimentVolume[y + j][x + i] += moveSedimentAmount;
+					}
+				}
+
+				/*
 				//get neightbor with steapest slope
 				float dmax = 0;
 				float h = heightMap[y][x] + waterVolume[y][x];
@@ -498,15 +518,17 @@ vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float
 						}
 
 					}
-				}
+				}*/
 				
 				//move water and sediment
+				/*
 				float moveWaterAmount = fmax(0.0f, fmin(waterVolume[y][x], (h - hNeigh) / 2.0f));//clamp((h - hNeigh)/2.0f, 0.0f, waterVolume[y][x]);
 				float moveSedimentAmount = (moveWaterAmount / waterVolume[y][x]) * sedimentVolume[y][x];
 				waterVolume[y][x] -= moveWaterAmount;
 				sedimentVolume[y][x] -= moveSedimentAmount;
 				waterVolume[neigh.y][neigh.x] += moveWaterAmount;
 				sedimentVolume[neigh.y][neigh.x] += moveSedimentAmount;
+				*/
 
 
 				//evaporte water
