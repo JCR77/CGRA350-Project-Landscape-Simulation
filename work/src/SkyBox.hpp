@@ -14,14 +14,14 @@
 class SkyBox
 {
 private:
-    GLuint shader_;
-    GLuint texture_;
-    cgra::gl_mesh mesh_;
+    GLuint shader;
+    GLuint texture;
+    cgra::gl_mesh mesh;
 
-    glm::mat4 transform_;
+    glm::mat4 transform;
 
-    std::weak_ptr<FogRenderer> fog_;
-    bool show_fog_ = false;
+    std::weak_ptr<FogRenderer> fog;
+    bool show_fog = false;
     void createMesh();
 
     /**
@@ -36,7 +36,7 @@ public:
     SkyBox(float size, std::weak_ptr<FogRenderer> fog);
     ~SkyBox();
 
-    void setShowFog(bool show_fog) { show_fog_ = show_fog; }
+    void setShowFog(bool show_fog) { this->show_fog = show_fog; }
 
     void draw(const glm::mat4 &view, const glm::mat4 &proj);
 };

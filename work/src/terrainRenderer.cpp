@@ -41,6 +41,8 @@ void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, cons
 
 	glActiveTexture(GL_TEXTURE0 + 3);
 	glBindTexture(GL_TEXTURE_2D, sandTexture);
+	glActiveTexture(GL_TEXTURE0 + 4);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
 
 	mesh.draw(); // draw
 }

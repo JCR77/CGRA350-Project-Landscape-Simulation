@@ -34,20 +34,23 @@ private:
         Reflection,
         NormalMap,
         DudvMap,
+        Depth
     };
 
-    GLuint shader_ = 0;
+    GLuint shader = 0;
 
-    DistortionOffset primary_offset_ = DistortionOffset({-1, -1});
-    DistortionOffset secondary_offset_ = DistortionOffset({0, -1});
+    DistortionOffset primary_offset = DistortionOffset({-1, -1});
+    DistortionOffset secondary_offset = DistortionOffset({0, -1});
 
     // Textures
-    GLuint refraction_texture_, reflection_texture_, normal_map_, dudv_map_;
+    GLuint refraction_texture, reflection_texture, normal_map, dudv_map, depth_texture;
 
-    cgra::gl_mesh mesh_;
-    glm::vec3 colour_{0, 0, 1}; // temp
+    cgra::gl_mesh mesh;
+    glm::vec3 colour{0, 0, 1}; // temp
 
     void updateOffsets(float delta_time);
+    void unbindTextures();
+    void bindTextures();
 
 protected:
     friend class WaterRenderer;
@@ -67,5 +70,5 @@ public:
 
     void draw(const glm::mat4 &view, const glm::mat4 proj, float delta_time);
 
-    void setTextures(int refraction, int reflection);
+    void setTextures(int refraction, int reflection, int depth);
 };

@@ -110,6 +110,7 @@ int main() {
 	glfwSetScrollCallback(window, scrollCallback);
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetCharCallback(window, charCallback);
+    glfwSetFramebufferSizeCallback(window, framebufferResize);
 
 	// create the application object (and a global pointer to it)
 	Application application(window);
