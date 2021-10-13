@@ -54,6 +54,7 @@ public:
 	glm::mat4 projectionMatrix;
 
 	float frameIndex = 0;
+	float frameIndex2 = 0;
 	float indexSpeed = 0.015f;
 	float amplitude = 0.095f;
 	float period = 2.0f;

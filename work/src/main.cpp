@@ -222,6 +222,7 @@ int main() {
 		glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
 
 		glUniform1f(glGetUniformLocation(shader, "waveOffset"), application.fog_renderer->frameIndex);
+    glUniform1f(glGetUniformLocation(shader, "textureSpeed"), application.fog_renderer->frameIndex2);
 		glUniform1f(glGetUniformLocation(shader, "amplitude"), application.fog_renderer->amplitude);
 		glUniform1f(glGetUniformLocation(shader, "period"), application.fog_renderer->period);
 

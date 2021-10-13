@@ -59,6 +59,7 @@ void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 	previousTime = currentTime;
 	if (deltaTime >= 1.0) {
 		frameIndex = frameIndex + indexSpeed;
+		frameIndex2 = frameIndex2 + 0.005;
 		deltaTime = 0;
 	}
 	viewMatrix = view;
@@ -67,19 +68,15 @@ void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 	int w, h;
 	glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
 	//glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32F , w,  h, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	
+
 }
 
 
 void FogRenderer::renderGUI() {
-	// example of how to use input boxes
 	ImGui::SliderFloat("Near", &near, 0.0, 1, "");
 	if (ImGui::SliderFloat("Far", &far, 0.0, 500, ""))
         WaterRenderer::setSceneUpdated();
-	//ImGui::InputFloat("Near", &near);
-	//ImGui::InputFloat("Far", &far);
-	ImGui::InputFloat("Speed", &indexSpeed);
-	ImGui::InputFloat("Amplitude", &amplitude);
-	ImGui::InputFloat("Period", &period);
+	ImGui::SliderFloat("Speed", &indexSpeed, 0.01, 0.1, "");
+	ImGui::SliderFloat("Amplitude", &amplitude, 0.01, 0.1, "");
+	ImGui::SliderFloat("Period", &period, 4, 0.5, "");
 }
-
