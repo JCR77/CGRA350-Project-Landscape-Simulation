@@ -13,6 +13,7 @@ layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoord;
 layout(location = 3) in float atransitionOffset;
+layout(location = 4) in float aWaterVolume;
 
 // model data (this must match the input of the vertex shader)
 out VertexData {
@@ -22,6 +23,7 @@ out VertexData {
 	vec3 world_normal;
 	vec2 textureCoord;
 	float transitionOffset;
+	float waterVolume;
 } v_out;
 
 void main() {
@@ -36,6 +38,7 @@ void main() {
 	v_out.textureCoord = aTexCoord;
 	int i = 201 * int(aTexCoord.y) + int(aTexCoord.x);
 	v_out.transitionOffset = atransitionOffset * 0.3f;
+	v_out.waterVolume = aWaterVolume;
 
 	// set the screenspace position (needed for converting to fragment data)
 	gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1);
