@@ -46,7 +46,7 @@ private:
 
     bool show_terrain = true;
     bool show_water = false;
-    bool show_fog = false;
+    
 
 public:
     // setup
@@ -69,4 +69,5 @@ public:
     void resize(int width, int height); // resizing the window
 
     FogRenderer fog_renderer;
+    bool show_fog = false;
 };

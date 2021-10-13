@@ -39,6 +39,7 @@ void basic_terrain_model::draw(const glm::mat4& view, const glm::mat4 proj, cons
 	glUniform1f(glGetUniformLocation(shader, "scale"), scale);
 	//glUniform1fv(glGetUniformLocation(shader, "trasitionHeightOffsets"), 201*201, trasitionHeightOffsets);
 
+	glActiveTexture(GL_TEXTURE0 + 3);
 	glBindTexture(GL_TEXTURE_2D, sandTexture);
 
 	mesh.draw(); // draw

@@ -41,7 +41,6 @@ void basic_fog_model::draw(const glm::mat4& view, const glm::mat4 proj) {
 
 
 FogRenderer::FogRenderer() {
-
 	shader_builder sb;
 	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//color_vert.glsl"));
 	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//color_frag.glsl"));
@@ -50,11 +49,6 @@ FogRenderer::FogRenderer() {
 	m_model.shader = shader;
 	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
 	m_model.color = vec3(1, 0, 0);
-
-	
-
-
-	
 }
 
 
@@ -68,7 +62,7 @@ void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 	}
 	viewMatrix = view;
 	projectionMatrix = proj;
-	m_model.draw(view, proj);
+	//m_model.draw(view, proj);
 	int w, h;
 	glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
 	//glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32F , w,  h, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -77,23 +71,13 @@ void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 
 
 void FogRenderer::renderGUI() {
-
 	// example of how to use input boxes
-	ImGui::InputFloat("Near", &near);
-	ImGui::InputFloat("Far", &far);
+	ImGui::SliderFloat("Near", &near, 0.0, 1, "");
+	ImGui::SliderFloat("Far", &far, 0.0, 500, "");
+	//ImGui::InputFloat("Near", &near);
+	//ImGui::InputFloat("Far", &far);
 	ImGui::InputFloat("Speed", &indexSpeed);
 	ImGui::InputFloat("Amplitude", &amplitude);
 	ImGui::InputFloat("Period", &period);
-	if (ImGui::Button("Enable/Disable Fog")) 
-	{
-		if (state == 0.0f)
-		{
-			state = 1.0f;
-		}
-		else
-		{
-			state = 0.0f;
-		}
-	}
 }
 

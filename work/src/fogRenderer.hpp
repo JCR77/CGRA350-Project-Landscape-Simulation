@@ -46,16 +46,15 @@ public:
 	void renderGUI();
 
 	//Variables
-	float state = 0.0f;
-	float near = 0.1f;
-	float far = 300.0f;
+	float near = 0.006f;
+	float far = 140.0f;
 
 	//Matricies
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
 
 	float frameIndex = 0;
-	float indexSpeed = 0.05;
-	float amplitude = 0.05;
-	float period = 0.5;
+	float indexSpeed = 0.015f;
+	float amplitude = 0.095f;
+	float period = 2.0f;
 };

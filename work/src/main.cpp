@@ -228,7 +228,7 @@ int main() {
 		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer.near);
 		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer.far);
 
-		glUniform1f(glGetUniformLocation(shader, "state"), application.fog_renderer.state);
+		glUniform1f(glGetUniformLocation(shader, "state"), application.show_fog);
 		glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(application.fog_renderer.projectionMatrix));
 		glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(application.fog_renderer.viewMatrix));
 
