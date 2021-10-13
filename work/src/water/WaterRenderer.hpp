@@ -13,6 +13,7 @@
 #include "Timer.hpp"
 #include "../SkyBox.hpp"
 #include "../terrainRenderer.hpp"
+#include "../fogRenderer.hpp"
 
 class WaterRenderer
 {
@@ -31,6 +32,7 @@ private:
     static bool scene_updated;
 
     bool show_terrain = true;
+    bool show_fog = false;
 
     enum class Type
     {
@@ -49,6 +51,7 @@ private:
     GLuint depth_texture;
 
     std::weak_ptr<TerrainRenderer> terrain_renderer;
+    std::weak_ptr<FogRenderer> fog_renderer;
     std::weak_ptr<SkyBox> sky;
 
     glm::ivec2 window_size;
@@ -60,14 +63,12 @@ private:
     void renderRefraction(const glm::mat4 &view, const glm::mat4 &proj);
     void renderReflection(const glm::mat4 &view, const glm::mat4 &proj);
     void destroy();
-    void unbindTextures();
-    void bindTextures();
 
 public:
     ~WaterRenderer();
 
     // setup
-    WaterRenderer(std::weak_ptr<TerrainRenderer> terrain_renderer, std::weak_ptr<SkyBox> sky);
+    WaterRenderer(std::weak_ptr<TerrainRenderer> terrain_renderer, std::weak_ptr<SkyBox> sky, std::weak_ptr<FogRenderer> fog);
 
     // disable copy constructors (for safety)
     WaterRenderer(const WaterRenderer &) = delete;
@@ -75,6 +76,7 @@ public:
 
     static void setSceneUpdated() { scene_updated = true; }
     void setShowTerrain(bool show_terrain);
+    void setShowFog(bool show_fog);
 
     // rendering callbacks (every frame)
     void render(const glm::mat4 &view, const glm::mat4 &proj);

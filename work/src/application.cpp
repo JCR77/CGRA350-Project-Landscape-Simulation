@@ -25,7 +25,7 @@ Application::Application(GLFWwindow *window) : m_window(window)
     terrain_renderer = make_shared<TerrainRenderer>();
     fog_renderer = make_shared<FogRenderer>();
     sky = make_shared<SkyBox>(200.f, fog_renderer);
-    water_renderer = make_shared<WaterRenderer>(terrain_renderer, sky);
+    water_renderer = make_shared<WaterRenderer>(terrain_renderer, sky, fog_renderer);
     water_renderer->setShowTerrain(show_terrain);
 }
 
@@ -105,24 +105,22 @@ void Application::renderGUI()
     ImGui::SameLine();
     if (ImGui::Checkbox("Fog", &show_fog)) {
         sky->setShowFog(show_fog);
+        water_renderer->setShowFog(show_fog);
         WaterRenderer::setSceneUpdated();
     }
     ImGui::Separator();
 
-    if (show_terrain)
-    {
+    if (show_terrain) {
         if (ImGui::CollapsingHeader("Terrain##ID1"))
             terrain_renderer->renderGUI();
     }
 
-    if (show_water)
-    {
+    if (show_water) {
         if (ImGui::CollapsingHeader("Water##ID1"))
             water_renderer->renderGUI();
     }
 
-    if (show_fog)
-    {
+    if (show_fog) {
         if (ImGui::CollapsingHeader("Fog##ID1"))
             fog_renderer->renderGUI();
     }
