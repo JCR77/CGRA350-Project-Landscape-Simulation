@@ -2,6 +2,7 @@
 
 // uniform data
 uniform float uFog; // distance of fog far plane
+uniform float uMurkiness;
 uniform sampler2D uRefraction;
 uniform sampler2D uReflection;
 uniform sampler2D uNormalMap;
@@ -134,7 +135,9 @@ void main() {
     vec4 refractionColour = texture(uRefraction, uv);
     // mix with water colour depending on how deep the water is
     // (deeper water becomes more murky - less refraction can be seen)
-    // refractionColour = mix(refractionColour, waterColour, depth / (maxWaterDepth + 5));
+    float murkiness = (depth / maxWaterDepth) * uMurkiness;
+    refractionColour = mix(refractionColour, waterColour, murkiness);
+
     vec4 reflectionColour = texture(uReflection, uv);
 
     float weight = getFresnelWeight(normal);

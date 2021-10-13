@@ -56,9 +56,10 @@ protected:
     friend class WaterRenderer;
 
     float height = 0;
-    float distortion_speed = 0.03;
+    float murkiness = 0.5;
+    float distortion_speed = 0.05;
     float distortion_strength = 0.01;
-    float ripple_size = 3;
+    float ripple_size = 10;
 
 public:
     ~WaterSurface();

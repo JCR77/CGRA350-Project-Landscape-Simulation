@@ -95,6 +95,7 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta
     glUniform2fv(glGetUniformLocation(shader, "uPrimaryOffset"), 1, value_ptr(primary_offset.current_offset));
     glUniform2fv(glGetUniformLocation(shader, "uSecondaryOffset"), 1, value_ptr(secondary_offset.current_offset));
     glUniform1f(glGetUniformLocation(shader, "uFog"), fog);
+    glUniform1f(glGetUniformLocation(shader, "uMurkiness"), murkiness);
 
     glDrawElements(mesh.mode, mesh.index_count, GL_UNSIGNED_INT, 0);
 
