@@ -40,7 +40,7 @@ vec4 WaterRenderer::getClipPlane(Type type)
     // raise the clipping plane depending on the amount of distortion,
     // otherwise we get strange artifacts
     float refraction_bias = 100 * water->distortion_strength;
-    float reflection_bias = 30 * water->distortion_strength;
+    float reflection_bias = 10 * water->distortion_strength;
     if (type == Type::Refraction)
     {
         // clips everything above the water
@@ -220,12 +220,12 @@ void WaterRenderer::renderReflection(const glm::mat4 &view, const glm::mat4 &pro
 void WaterRenderer::renderGUI()
 {
     if (ImGui::SliderFloat("Height", &water->height, -10, 20, "%.3f"))
-    {
         setSceneUpdated();
-    }
-    ImGui::SliderFloat("Distortion Strength", &water->distortion_strength, 0.0, 0.02, "");
+    if (ImGui::SliderFloat("Distortion Strength", &water->distortion_strength, 0.0, 0.02, ""))
+        setSceneUpdated();
     ImGui::SliderFloat("Movement Speed", &water->distortion_speed, 0.0, 0.1, "");
     ImGui::SliderFloat("Ripple Size", &water->ripple_size, 1, 20, "");
+    ImGui::SliderFloat("Murkiness", &water->murkiness, 0, 1.0, "");
 }
 
 WaterRenderer::~WaterRenderer()
