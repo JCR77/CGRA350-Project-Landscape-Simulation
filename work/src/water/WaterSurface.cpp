@@ -71,7 +71,7 @@ void WaterSurface::setTextures(int refraction, int reflection, int depth)
     depth_texture = depth;
 }
 
-void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta_time)
+void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta_time, float fog)
 {
     updateOffsets(delta_time);
 
@@ -94,6 +94,7 @@ void WaterSurface::draw(const glm::mat4 &view, const glm::mat4 proj, float delta
     glUniform1f(glGetUniformLocation(shader, "uRippleSize"), ripple_size);
     glUniform2fv(glGetUniformLocation(shader, "uPrimaryOffset"), 1, value_ptr(primary_offset.current_offset));
     glUniform2fv(glGetUniformLocation(shader, "uSecondaryOffset"), 1, value_ptr(secondary_offset.current_offset));
+    glUniform1f(glGetUniformLocation(shader, "uFog"), fog);
 
     glDrawElements(mesh.mode, mesh.index_count, GL_UNSIGNED_INT, 0);
 

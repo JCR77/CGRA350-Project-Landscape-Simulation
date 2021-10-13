@@ -1,7 +1,7 @@
 #version 330 core
 
 // uniform data
-uniform vec3 uColor;
+uniform float uFog; // distance of fog far plane
 uniform sampler2D uRefraction;
 uniform sampler2D uReflection;
 uniform sampler2D uNormalMap;
@@ -59,6 +59,19 @@ float getFresnelWeight(vec3 normal) {
     return max(fBias + (1.0 - fBias) * pow(facing, 4), 0);
 }
 
+const float lower = 2;
+const float upper = 10;
+const float minStrength = 0.5;
+float getLightStrength() {
+    // float strength = uFog
+    if (uFog > upper)
+        return minStrength;
+    else if (uFog < lower)
+        return 1.0;
+    else
+        return 1.0 - (((uFog - lower) / (upper - lower)) * (1.0 - minStrength));
+}
+
 // default near and far planes
 const float near = 0.1;
 const float far = 1000.0;
@@ -85,6 +98,12 @@ const float maxWaterDepth = 10;
 * Calculations done in view space
 */
 void main() {
+    // Get uv coordinates for sampling from reflection and refraction textures
+    // map clip space coordinates to uv space
+    vec2 projectedCoords = f_in.clipSpacePosition.xy / f_in.clipSpacePosition.w;
+    // map to range [0, 1]
+    vec2 uv = projectedCoords * 0.5 + 0.5;
+
     // Create water distortion effect:
     // Offsetting the original uv coordinates
     vec2 primaryMotionCoords = f_in.textureCoord + uPrimaryOffset;
@@ -105,12 +124,6 @@ void main() {
     distortion = distortion * 2 - 1;
     distortion *= uDistortionStrength;
 
-    // Get uv coordinates for sampling from reflection and refraction textures
-    // map clip space coordinates to uv space
-    vec2 projectedCoords = f_in.clipSpacePosition.xy / f_in.clipSpacePosition.w;
-    // map to range [0, 1]
-    vec2 uv = projectedCoords * 0.5 + 0.5;
-
     float depth = getWaterDepth(uv);
     depth = clamp(depth, 0, maxWaterDepth);
 
@@ -121,17 +134,18 @@ void main() {
     vec4 refractionColour = texture(uRefraction, uv);
     // mix with water colour depending on how deep the water is
     // (deeper water becomes more murky - less refraction can be seen)
-    refractionColour = mix(refractionColour, waterColour, depth / maxWaterDepth);
+    // refractionColour = mix(refractionColour, waterColour, depth / (maxWaterDepth + 5));
     vec4 reflectionColour = texture(uReflection, uv);
 
     float weight = getFresnelWeight(normal);
     // mix refraction and reflection textures using fresnel effect
     vec3 colour = mix(refractionColour, reflectionColour, weight).xyz;
 
-    // output to the frambuffer
-    fb_color = vec4(getSpecular(normal) + colour, 1.0);
+    vec3 specular = getSpecular(normal) * getLightStrength();
+    fb_color = vec4(specular + colour, 1.0);
 
     // Create soft water edges
     // (shallower parts become more transparent)
     fb_color.a = clamp(depth / 2, 0, 1.0);
 }
+

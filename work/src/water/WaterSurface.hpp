@@ -58,7 +58,7 @@ protected:
     float height = 0;
     float distortion_speed = 0.03;
     float distortion_strength = 0.01;
-    float ripple_size = 6;
+    float ripple_size = 3;
 
 public:
     ~WaterSurface();
@@ -68,7 +68,7 @@ public:
      */
     WaterSurface(float size, float height);
 
-    void draw(const glm::mat4 &view, const glm::mat4 proj, float delta_time);
+    void draw(const glm::mat4 &view, const glm::mat4 proj, float delta_time, float fog);
 
     void setTextures(int refraction, int reflection, int depth);
 };

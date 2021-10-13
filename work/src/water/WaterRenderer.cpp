@@ -21,14 +21,15 @@ using namespace glm;
 
 bool WaterRenderer::scene_updated = true;
 
-WaterRenderer::WaterRenderer(weak_ptr<TerrainRenderer> terrain_renderer, weak_ptr<SkyBox> sky) : terrain_renderer(terrain_renderer)
+WaterRenderer::WaterRenderer(weak_ptr<TerrainRenderer> terrain_renderer, weak_ptr<SkyBox> sky, weak_ptr<FogRenderer> fog)
+    : terrain_renderer(terrain_renderer), fog_renderer(fog)
 {
     glfwGetFramebufferSize(glfwGetCurrentContext(), &window_size.x, &window_size.y);
 
     // create fbos
     initFbos();
 
-    water = make_unique<WaterSurface>(100, 5);
+    water = make_unique<WaterSurface>(100, 2.566);
     water->setTextures(refraction_texture, reflection_texture, depth_texture);
 
     this->sky = sky;
@@ -155,7 +156,8 @@ void WaterRenderer::render(const glm::mat4 &view, const glm::mat4 &proj)
         glViewport(0, 0, window_size.x, window_size.y);
     }
 
-    water->draw(view, proj, timer.getDelta());
+    float fog = show_fog ? fog_renderer.lock()->far : 0.f;
+    water->draw(view, proj, timer.getDelta(), fog);
     scene_updated = false;
 }
 
@@ -245,5 +247,11 @@ void WaterRenderer::resize(int width, int height)
 void WaterRenderer::setShowTerrain(bool show_terrain)
 {
     this->show_terrain = show_terrain;
+    setSceneUpdated();
+}
+
+void WaterRenderer::setShowFog(bool show_fog)
+{
+    this->show_fog = show_fog;
     setSceneUpdated();
 }
