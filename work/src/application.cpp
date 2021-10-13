@@ -23,7 +23,8 @@ using namespace glm;
 Application::Application(GLFWwindow *window) : m_window(window)
 {
     terrain_renderer = make_shared<TerrainRenderer>();
-    sky = make_shared<SkyBox>(200.f);
+    fog_renderer = make_shared<FogRenderer>();
+    sky = make_shared<SkyBox>(200.f, fog_renderer);
     water_renderer = make_shared<WaterRenderer>(terrain_renderer, sky);
     water_renderer->setShowTerrain(show_terrain);
 }
@@ -70,7 +71,7 @@ void Application::render()
     if (show_water)
         water_renderer->render(view, proj);
     if (show_fog)
-        fog_renderer.render(view, proj);
+        fog_renderer->render(view, proj);
 }
 
 void Application::renderGUI()
@@ -102,7 +103,10 @@ void Application::renderGUI()
     ImGui::SameLine();
     ImGui::Checkbox("Water", &show_water);
     ImGui::SameLine();
-    ImGui::Checkbox("Fog", &show_fog);
+    if (ImGui::Checkbox("Fog", &show_fog)) {
+        sky->setShowFog(show_fog);
+        WaterRenderer::setSceneUpdated();
+    }
     ImGui::Separator();
 
     if (show_terrain)
@@ -120,7 +124,7 @@ void Application::renderGUI()
     if (show_fog)
     {
         if (ImGui::CollapsingHeader("Fog##ID1"))
-            fog_renderer.renderGUI();
+            fog_renderer->renderGUI();
     }
 
     // finish creating window

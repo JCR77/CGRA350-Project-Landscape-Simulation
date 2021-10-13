@@ -110,6 +110,7 @@ int main() {
 	glfwSetScrollCallback(window, scrollCallback);
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetCharCallback(window, charCallback);
+    glfwSetFramebufferSizeCallback(window, framebufferResize);
 
 	// create the application object (and a global pointer to it)
 	Application application(window);
@@ -220,18 +221,18 @@ int main() {
 		glUniform1i(glGetUniformLocation(shader, "depthBuffer"), 1);
 		glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
 
-		glUniform1f(glGetUniformLocation(shader, "waveOffset"), application.fog_renderer.frameIndex);
-		glUniform1f(glGetUniformLocation(shader, "textureSpeed"), application.fog_renderer.frameIndex2);
-		glUniform1f(glGetUniformLocation(shader, "amplitude"), application.fog_renderer.amplitude);
-		glUniform1f(glGetUniformLocation(shader, "period"), application.fog_renderer.period);
+		glUniform1f(glGetUniformLocation(shader, "waveOffset"), application.fog_renderer->frameIndex);
+    glUniform1f(glGetUniformLocation(shader, "textureSpeed"), application.fog_renderer->frameIndex2);
+		glUniform1f(glGetUniformLocation(shader, "amplitude"), application.fog_renderer->amplitude);
+		glUniform1f(glGetUniformLocation(shader, "period"), application.fog_renderer->period);
 
 
-		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer.near);
-		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer.far);
+		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer->near);
+		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer->far);
 
 		glUniform1f(glGetUniformLocation(shader, "state"), application.show_fog);
-		glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(application.fog_renderer.projectionMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(application.fog_renderer.viewMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(application.fog_renderer->projectionMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(application.fog_renderer->viewMatrix));
 
 		//std::cout << glm::to_string(application.fog_renderer.viewMatrix) << std::endl;
 

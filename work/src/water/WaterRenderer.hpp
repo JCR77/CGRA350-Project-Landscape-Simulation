@@ -30,7 +30,7 @@ private:
      */
     static bool scene_updated;
 
-    bool show_terrain_ = true;
+    bool show_terrain = true;
 
     enum class Type
     {
@@ -38,19 +38,20 @@ private:
         Refraction
     };
 
-    Timer timer_;
+    Timer timer;
 
-    std::unique_ptr<WaterSurface> water_;
+    std::unique_ptr<WaterSurface> water;
 
-    GLuint refraction_fbo_;
-    GLuint reflection_fbo_;
-    GLuint refraction_texture_;
-    GLuint reflection_texture_;
+    GLuint refraction_fbo;
+    GLuint reflection_fbo;
+    GLuint refraction_texture;
+    GLuint reflection_texture;
+    GLuint depth_texture;
 
-    std::weak_ptr<TerrainRenderer> terrain_renderer_;
-    std::weak_ptr<SkyBox> sky_;
+    std::weak_ptr<TerrainRenderer> terrain_renderer;
+    std::weak_ptr<SkyBox> sky;
 
-    glm::ivec2 window_size_;
+    glm::ivec2 window_size;
 
     void initFbos();
     int generateColourTexture(Type type);
@@ -59,6 +60,8 @@ private:
     void renderRefraction(const glm::mat4 &view, const glm::mat4 &proj);
     void renderReflection(const glm::mat4 &view, const glm::mat4 &proj);
     void destroy();
+    void unbindTextures();
+    void bindTextures();
 
 public:
     ~WaterRenderer();

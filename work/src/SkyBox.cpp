@@ -13,16 +13,17 @@ using namespace std;
 using namespace glm;
 using namespace cgra;
 
-SkyBox::SkyBox(float size)
+SkyBox::SkyBox(float size, weak_ptr<FogRenderer> fog)
     : SkyBox(size, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"})
 {
+    this->fog = fog;
 }
 
 SkyBox::SkyBox(float size, std::vector<std::string> file_names)
 {
     createMesh();
 
-    transform_ = scale(mat4(1), vec3(size));
+    transform = scale(mat4(1), vec3(size));
 
     string location = CGRA_SRCDIR + string("/res/textures/");
     for (int i = 0; i < file_names.size(); i++)
@@ -30,18 +31,18 @@ SkyBox::SkyBox(float size, std::vector<std::string> file_names)
         file_names.at(i) = location + file_names.at(i);
     }
 
-    texture_ = rgba_image::createCubeMapTexture(file_names);
+    texture = rgba_image::createCubeMapTexture(file_names);
 
     // set shader
     shader_builder sb;
     sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("/res/shaders/sky_vert.glsl"));
     sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("/res/shaders/sky_frag.glsl"));
-    shader_ = sb.build();
+    shader = sb.build();
 }
 
 void SkyBox::draw(const mat4 &view, const mat4 &proj)
 {
-    glUseProgram(shader_); // load shader and variables
+    glUseProgram(shader); // load shader and variables
 
     // extract only rotation and scale from view transformation, to prevent skybox from
     // moving as the camera moves
@@ -52,11 +53,12 @@ void SkyBox::draw(const mat4 &view, const mat4 &proj)
     glm::decompose(view, scale, rotation, v, v, v4);
     mat4 rot_view = mat4_cast(rotation) * glm::scale(mat4(1), scale);
 
-    glBindTexture(GL_TEXTURE_CUBE_MAP, texture_);
-    glUniformMatrix4fv(glGetUniformLocation(shader_, "uProjectionMatrix"), 1, false, value_ptr(proj));
-    glUniformMatrix4fv(glGetUniformLocation(shader_, "uViewMatrix"), 1, false, value_ptr(rot_view));
-    glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelMatrix"), 1, false, value_ptr(transform_));
-    mesh_.draw();
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uViewMatrix"), 1, false, value_ptr(rot_view));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uModelMatrix"), 1, false, value_ptr(transform));
+    glUniform1f(glGetUniformLocation(shader, "uFog"), show_fog ? fog.lock()->far : 0.f);
+    mesh.draw();
 
     glUseProgram(0); // load shader and variables
 }
@@ -84,12 +86,12 @@ void SkyBox::createMesh()
         builder.push_index(i);
     }
 
-    mesh_ = builder.build();
+    mesh = builder.build();
 }
 
 SkyBox::~SkyBox()
 {
-    glDeleteProgram(shader_);
-    glDeleteTextures(1, &texture_);
-    mesh_.destroy();
+    glDeleteProgram(shader);
+    glDeleteTextures(1, &texture);
+    mesh.destroy();
 }

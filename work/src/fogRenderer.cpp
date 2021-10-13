@@ -10,6 +10,7 @@
 
 // project
 #include "fogRenderer.hpp"
+#include "water/WaterRenderer.hpp"
 #include "cgra/cgra_geometry.hpp"
 #include "cgra/cgra_gui.hpp"
 #include "cgra/cgra_image.hpp"
@@ -67,15 +68,15 @@ void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 	int w, h;
 	glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
 	//glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32F , w,  h, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	
+
 }
 
 
 void FogRenderer::renderGUI() {
 	ImGui::SliderFloat("Near", &near, 0.0, 1, "");
-	ImGui::SliderFloat("Far", &far, 0.0, 500, "");
+	if (ImGui::SliderFloat("Far", &far, 0.0, 500, ""))
+        WaterRenderer::setSceneUpdated();
 	ImGui::SliderFloat("Speed", &indexSpeed, 0.01, 0.1, "");
 	ImGui::SliderFloat("Amplitude", &amplitude, 0.01, 0.1, "");
 	ImGui::SliderFloat("Period", &period, 4, 0.5, "");
 }
-

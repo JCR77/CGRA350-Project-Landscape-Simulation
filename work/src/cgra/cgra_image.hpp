@@ -76,7 +76,7 @@ namespace cgra
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
 
-            for (int i = 0; i < file_names.size(); i++)
+            for (uint i = 0; i < file_names.size(); i++)
             {
                 rgba_image img = rgba_image(file_names.at(i));
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
