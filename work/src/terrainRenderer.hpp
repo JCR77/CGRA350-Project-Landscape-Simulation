@@ -45,6 +45,8 @@ public:
 
 private:
 
+	std::vector<std::vector<float>> testHM = std::vector<std::vector<float>>();
+
 	// geometry
 	basic_terrain_model m_model;
 	float worldSize = 100;
@@ -83,7 +85,7 @@ private:
 	//errosion
 	int erodeIter = 0;
 	bool shouldErodeTerrain = false;
-	int terrainType = 0; //0 = terraces,	1 = realistic	
+	int terrainType = 1; //0 = terraces,	1 = realistic	
 
 	float talusThreshold = 0.7f;
 	float sedimentvolume = 0.3;

@@ -110,6 +110,15 @@ TerrainRenderer::TerrainRenderer() {
 
 	m_model.stoneTexture = stoneTexture;
 	
+
+	/*
+	//for test
+	testHM = vector<vector<float>>(5, vector<float>(5, 10));
+	testHM[2][2] = 5;
+
+	waterVolume = vector<vector<float>>(5, vector<float>(5, 0));
+	sedimentVolume = vector<vector<float>>(5, vector<float>(5, 0));
+	*/
 }
 
 
@@ -126,10 +135,12 @@ void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj, const
 		if (terrainType == 0) {
 			m_model.heightMap = erodeTerrainTerraces(m_model.heightMap, m_model.heightMap.size(), 1);
 		}else {
+			//testHM = erodeTerrainRealistic(testHM, 5, 1, erodeIter < rainIter);
 			m_model.heightMap = erodeTerrainRealistic(m_model.heightMap, m_model.heightMap.size(), 1, erodeIter < rainIter);
 		}
 		erodeIter++;
 
+		
 		//generate mesh
 		mesh_builder plane_mb = generatePlane();
 
@@ -165,8 +176,14 @@ void TerrainRenderer::render(const glm::mat4& view, const glm::mat4& proj, const
 			// reflection and refraction textures
 			WaterRenderer::setSceneUpdated();
 		}
+
+		if (erodeIter == rainIter + evapIter - 1) {
+			waterVolume = vector<vector<float>>(m_model.heightMap.size(), vector<float>(m_model.heightMap[0].size(), 0));
+			sedimentVolume = vector<vector<float>>(m_model.heightMap.size(), vector<float>(m_model.heightMap[0].size(), 0));
+		}
 		
 	}
+	
 
 	// draw the model
 	m_model.scale = scale;
@@ -259,15 +276,22 @@ void TerrainRenderer::renderGUI() {
 
 		ImGui::Combo("Erosion Type", &terrainType, "Terraces\0Realistic\0", 2);
 
+		ImGui::Separator();
+		ImGui::Text("Iterations:");
 		ImGui::InputFloat("rain iterations", &rainIter);
 		ImGui::InputFloat("evaporate iterations", &evapIter);
 
+
+		ImGui::Separator();
+		ImGui::Text("Thermal Erosion:");
 		if (ImGui::SliderFloat("Talus Threshold", &talusThreshold, 0, 2, "%.2f")) {
 			generateTerrain(numOctaves);
 		}
 		ImGui::InputFloat("erosion sediment volume", &sedimentvolume);
 
 
+		ImGui::Separator();
+		ImGui::Text("Hydrolic Erosion:");
 		ImGui::InputFloat("rain", &kr);
 		ImGui::InputFloat("desolve", &ks);
 		ImGui::InputFloat("Evaporation", &ke);
@@ -387,15 +411,8 @@ void TerrainRenderer::generateTerrain(int numOctaves) {
 		}
 	}
 	m_model.heightMap = heightMap;
+	
 
-	//if (shouldErodeTerrain && erodeIter < 50) {
-	//	waterVolume = vector<vector<float>>(numTrianglesAcross + 3, vector<float>(numTrianglesAcross + 3, 0));
-	//	sedimentVolume = vector<vector<float>>(size, vector<float>(size, 0));
-	//	heightMap = erodeTerrainRealistic(heightMap, numTrianglesAcross + 3, 1);
-	//	erodeIter++;
-	//}
-
-	//printf("done erosion");
 	waterVolume = vector<vector<float>>(heightMap.size(), vector<float>(heightMap[0].size(), 0));
 	sedimentVolume = vector<vector<float>>(heightMap.size(), vector<float>(heightMap[0].size(), 0));
 
@@ -526,19 +543,15 @@ vector<vector<float>> TerrainRenderer::erodeTerrainTerraces(vector<vector<float>
 
 					}
 				}
-				//printf("%.2f \n", dmax);
 
 				//erode point (move material down the slope)
 				if (dmax > 0 && dmax <= talusThreshold) {
-					//printf("%.2f \n", dmax);
-
 					vec2 b = vec2(heightMap[y][x], heightMap[neigh.y][neigh.x]);
 
 					float deltaH = 0.3 * dmax;
 					heightMap[y][x] -= deltaH;
 					heightMap[neigh.y][neigh.x] += deltaH;
 
-					//printf("deltaH = %.2f \tbefore: h=%.2f, hmax=%.2f \tafter: h=%.2f, hmax=%.2f \n", deltaH, b.x, b.y, heightMap[y][x], heightMap[neigh.y][neigh.x]);
 				}
 
 			}
@@ -551,16 +564,15 @@ vector<vector<float>> TerrainRenderer::erodeTerrainTerraces(vector<vector<float>
 
 
 vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float>> heightMap, int size, int numIterations, bool rain) {
-	
+
 
 	for (int iter = 0; iter < numIterations; iter++) {
 
 		for (int x = 1; x < size - 1; x++) {
 			for (int y = 1; y < size - 1; y++) {
-
 				
 				//Thermal Erosion
-				if (erodeIter % 4 == 0) {
+				if (erodeIter % 1 == 0) {
 
 					float totalDiff = 0;
 					float diffMax = 0;
@@ -587,31 +599,6 @@ vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float
 						}
 					}
 
-
-					/*
-					//get neightbor with steapest slope
-					float dmax = 0;
-					vec2 neigh = vec2(0, 0);
-					for (int i = -1; i <= 1; i++) {
-						for (int j = -1; j <= 1; j++) {
-
-							float d = heightMap[y][x] - heightMap[y + j][x + i];
-							if (d > dmax) {
-								dmax = d;
-								neigh = vec2(x + i, y + j);
-							}
-
-						}
-					}
-
-					//erode point (move material down the slope)
-					if (dmax > talusThreshold) {
-						float deltaH = sedimentvolume * dmax;
-						heightMap[y][x] -= deltaH;
-						heightMap[neigh.y][neigh.x] += deltaH;
-
-					}
-					*/
 				}
 				
 
@@ -619,12 +606,6 @@ vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float
 
 
 				//Hydrolic Erosion
-
-				//float kr = 0.1;
-				//float ks = 0.1;
-				//float ke = 0.5;
-				//float kc = 0.1;
-
 
 				//add water (rain)
 				if (rain) {
@@ -650,58 +631,38 @@ vector<vector<float>> TerrainRenderer::erodeTerrainRealistic(vector<vector<float
 				}
 				if (totalDiff > 0) {
 					float totalWaterMoveAmount = fmax(0.0f, fmin(waterVolume[y][x], totalDiff / 2.0f));
+					float initialWaterVolume = waterVolume[y][x];
+					float initialsedimentVolume = sedimentVolume[y][x];
 					for (int i = -1; i <= 1; i++) {
 						for (int j = -1; j <= 1; j++) {
-							float diff = fmax(0.0f, (heightMap[y][x] + waterVolume[y][x]) - (heightMap[y + j][x + i] + waterVolume[y + j][x + i]));
+							float diff = fmax(0.0f, (heightMap[y][x] + initialWaterVolume) - (heightMap[y + j][x + i] + waterVolume[y + j][x + i]));
 							float waterMoveAmount = (diff / totalDiff) * totalWaterMoveAmount;
-							float moveSedimentAmount = (waterMoveAmount / waterVolume[y][x]) * sedimentVolume[y][x];
+							float moveSedimentAmount = (waterMoveAmount / initialWaterVolume) * initialsedimentVolume;
 							waterVolume[y][x] -= waterMoveAmount;
 							sedimentVolume[y][x] -= moveSedimentAmount;
 							waterVolume[y + j][x + i] += waterMoveAmount;
 							sedimentVolume[y + j][x + i] += moveSedimentAmount;
+
+							if (waterVolume[y][x] < 0) waterVolume[y][x] = 0;
+							if (sedimentVolume[y][x] < 0) sedimentVolume[y][x] = 0;
 						}
 					}
 				}
-
-				/*
-				//get neightbor with steapest slope
-				float dmax = 0;
-				float h = heightMap[y][x] + waterVolume[y][x];
-				float hNeigh = h;
-				vec2 neigh = vec2(0, 0);
-				for (int i = -1; i <= 1; i++) {
-					for (int j = -1; j <= 1; j++) {
-
-						float d = (heightMap[y][x] + waterVolume[y][x]) - (heightMap[y + j][x + i] + waterVolume[y+j][x+i]);
-						if (d > dmax) {
-							dmax = d;
-							neigh = vec2(x + i, y + j);
-						}
-
-					}
-				}*/
 				
-				//move water and sediment
-				/*
-				float moveWaterAmount = fmax(0.0f, fmin(waterVolume[y][x], (h - hNeigh) / 2.0f));//clamp((h - hNeigh)/2.0f, 0.0f, waterVolume[y][x]);
-				float moveSedimentAmount = (moveWaterAmount / waterVolume[y][x]) * sedimentVolume[y][x];
-				waterVolume[y][x] -= moveWaterAmount;
-				sedimentVolume[y][x] -= moveSedimentAmount;
-				waterVolume[neigh.y][neigh.x] += moveWaterAmount;
-				sedimentVolume[neigh.y][neigh.x] += moveSedimentAmount;
-				*/
-
-
+				
 				//evaporte water
 				waterVolume[y][x] *= 1 - ke;
+				if (waterVolume[y][x] < 0.0001) {
+					waterVolume[y][x] = 0;
+				}
 
-
+				
 				//deposit sediment
 				float maxSediment = waterVolume[y][x] * kc;
 				float depositAmount = fmax(0.0f, sedimentVolume[y][x] - maxSediment);
 				sedimentVolume[y][x] -= depositAmount;
 				heightMap[y][x] += depositAmount;
-
+				
 			}
 		}
 
