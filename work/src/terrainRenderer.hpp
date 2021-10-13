@@ -83,19 +83,18 @@ private:
 	float H = 0.25;
 
 	//errosion
-	int erodeIter = 0;
+	int currentErodeIteration = 0;
 	bool shouldErodeTerrain = false;
 	int terrainType = 1; //0 = terraces,	1 = realistic	
 
-	float talusThreshold = 0.7f;
-	float sedimentvolume = 0.3;
+	float talusThreshold = 0.6f;
+	float sedimentvolume = 0.5;
 
-	float rainIter = 20;
-	float evapIter = 40;
+	float totalIterations = 20;
 
 	float kr = 0.1;
-	float ks = 0.5;
-	float ke = 0.5;
+	float ks = 0.3;
+	float ke = 0.8;
 	float kc = 0.1;
 
 	std::vector<std::vector<float>> waterVolume = std::vector<std::vector<float>>();
@@ -136,7 +135,7 @@ private:
 	float heterogeneousfbm(float x, float y, int numOctaves);
 	float hybridMultifractal(float x, float y, int numOctaves);
 
-	std::vector<std::vector<float>> erodeTerrainTerraces(std::vector<std::vector<float>> heightMap, int size, int numIterations);
-	std::vector<std::vector<float>> erodeTerrainRealistic(std::vector<std::vector<float>> heightMap, int size, int numIterations, bool rain);
+	std::vector<std::vector<float>> erodeTerrainTerraces(std::vector<std::vector<float>> heightMap, int size);
+	std::vector<std::vector<float>> erodeTerrainRealistic(std::vector<std::vector<float>> heightMap, int size);
 
 };
