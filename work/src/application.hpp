@@ -41,12 +41,10 @@ private:
     std::shared_ptr<TerrainRenderer> terrain_renderer;
     std::shared_ptr<WaterRenderer> water_renderer;
 
-
     std::shared_ptr<SkyBox> sky;
 
     bool show_terrain = true;
     bool show_water = false;
-    
 
 public:
     // setup
@@ -68,6 +66,6 @@ public:
     void charCallback(unsigned int c);
     void resize(int width, int height); // resizing the window
 
-    FogRenderer fog_renderer;
+    std::shared_ptr<FogRenderer> fog_renderer;
     bool show_fog = false;
 };

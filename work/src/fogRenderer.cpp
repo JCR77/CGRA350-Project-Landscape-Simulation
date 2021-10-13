@@ -10,6 +10,7 @@
 
 // project
 #include "fogRenderer.hpp"
+#include "water/WaterRenderer.hpp"
 #include "cgra/cgra_geometry.hpp"
 #include "cgra/cgra_gui.hpp"
 #include "cgra/cgra_image.hpp"
@@ -73,7 +74,8 @@ void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 void FogRenderer::renderGUI() {
 	// example of how to use input boxes
 	ImGui::SliderFloat("Near", &near, 0.0, 1, "");
-	ImGui::SliderFloat("Far", &far, 0.0, 500, "");
+	if (ImGui::SliderFloat("Far", &far, 0.0, 500, ""))
+        WaterRenderer::setSceneUpdated();
 	//ImGui::InputFloat("Near", &near);
 	//ImGui::InputFloat("Far", &far);
 	ImGui::InputFloat("Speed", &indexSpeed);

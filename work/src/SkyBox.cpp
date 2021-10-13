@@ -13,9 +13,10 @@ using namespace std;
 using namespace glm;
 using namespace cgra;
 
-SkyBox::SkyBox(float size)
+SkyBox::SkyBox(float size, weak_ptr<FogRenderer> fog)
     : SkyBox(size, {"sky_right.png", "sky_left.png", "sky_top.png", "sky_bottom.png", "sky_front.png", "sky_back.png"})
 {
+    fog_ = fog;
 }
 
 SkyBox::SkyBox(float size, std::vector<std::string> file_names)
@@ -56,6 +57,7 @@ void SkyBox::draw(const mat4 &view, const mat4 &proj)
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uProjectionMatrix"), 1, false, value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uViewMatrix"), 1, false, value_ptr(rot_view));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "uModelMatrix"), 1, false, value_ptr(transform_));
+    glUniform1f(glGetUniformLocation(shader_, "uFog"), show_fog_ ? fog_.lock()->far : 0.f);
     mesh_.draw();
 
     glUseProgram(0); // load shader and variables

@@ -185,7 +185,7 @@ int main() {
 	//Load fog texture
 	GLuint fogTexture;
 	//fogTexture = rgba_image("fogTexture.png").uploadTexture;
-	rgba_image test = rgba_image("fogTexture.png");
+	rgba_image test = rgba_image(CGRA_SRCDIR + string("/res/textures/fogTexture.png"));
 	fogTexture = test.uploadTexture();
 
 	glUseProgram(shader);
@@ -220,17 +220,17 @@ int main() {
 		glUniform1i(glGetUniformLocation(shader, "depthBuffer"), 1);
 		glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
 
-		glUniform1f(glGetUniformLocation(shader, "waveOffset"), application.fog_renderer.frameIndex);
-		glUniform1f(glGetUniformLocation(shader, "amplitude"), application.fog_renderer.amplitude);
-		glUniform1f(glGetUniformLocation(shader, "period"), application.fog_renderer.period);
+		glUniform1f(glGetUniformLocation(shader, "waveOffset"), application.fog_renderer->frameIndex);
+		glUniform1f(glGetUniformLocation(shader, "amplitude"), application.fog_renderer->amplitude);
+		glUniform1f(glGetUniformLocation(shader, "period"), application.fog_renderer->period);
 
 
-		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer.near);
-		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer.far);
+		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer->near);
+		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer->far);
 
 		glUniform1f(glGetUniformLocation(shader, "state"), application.show_fog);
-		glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(application.fog_renderer.projectionMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(application.fog_renderer.viewMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(application.fog_renderer->projectionMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(application.fog_renderer->viewMatrix));
 
 		//std::cout << glm::to_string(application.fog_renderer.viewMatrix) << std::endl;
 
