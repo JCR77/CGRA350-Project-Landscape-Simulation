@@ -27,7 +27,11 @@ struct basic_terrain_model {
 	float scale = 20;
 	GLuint offsetBuffer = 0;
 	std::vector<float> offsets = std::vector<float>();
-	//float trasitionHeightOffsets[201 * 201];
+	std::vector<std::vector<float>> heightMap;
+
+	float blendDist = 2.0f;
+	float transitionHeight1 = 0.0f;
+	float transitionHeight2 = 0.5f;
 
 	void draw(const glm::mat4& view, const glm::mat4 proj, const glm::vec4 &clip_plane);
 };
@@ -41,10 +45,13 @@ public:
 
 private:
 
+	std::vector<std::vector<float>> testHM = std::vector<std::vector<float>>();
+
 	// geometry
 	basic_terrain_model m_model;
-	float size = 100;
+	float worldSize = 100;
 	float squareSize = 0.5;
+	float mapSize = worldSize / squareSize + 1;
 
 	//noise
 	int permutations[256] = {151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,
@@ -63,10 +70,10 @@ private:
 							84,204,176,115,121,50,45,127, 4,150,254,138,236,205,93,222,114,
 							67,29,24,72,243,141,128,195,78,66,215,61,156,180};
 
-	//UI
+	//base terrain
 	float scale = 20;
 	float baseFrequency = 0.04;
-	int numOctaves = 3;
+	int numOctaves = 4;
 	float frequencyMultiplier = 2;
 	float amtitudeMultiplier = 0.5;
 
@@ -75,9 +82,29 @@ private:
 	float offset = 0.7;
 	float H = 0.25;
 
+	//errosion
+	int currentErodeIteration = 0;
+	bool shouldErodeTerrain = false;
+	int terrainType = 1; //0 = terraces,	1 = realistic	
+
+	float talusThreshold = 0.6f;
+	float sedimentvolume = 0.5;
+
+	float totalIterations = 20;
+
+	float kr = 0.1;
+	float ks = 0.3;
+	float ke = 0.8;
+	float kc = 0.1;
+
+	std::vector<std::vector<float>> waterVolume = std::vector<std::vector<float>>();
+	std::vector<std::vector<float>> sedimentVolume = std::vector<std::vector<float>>();
+
+	//textures
 	cgra::rgba_image textureImageGrass;
 	cgra::rgba_image textureImageSand;
 	cgra::rgba_image textureImageStone;
+
 
 public:
 	// setup
@@ -100,11 +127,15 @@ private:
 	void genPermutations();
 
 	//generate terrain	
-	terrain::gl_mesh generateTerrain(float size, int numTrianglesAcross, int numOctaves);
-	terrain::mesh_builder generatePlane(float size, int numTrianglesAcross);
+	void generateTerrain(int numOctaves);
+	terrain::mesh_builder generatePlane();
+	//terrain::mesh_builder generateMeshFromHeightMap(std::vector<std::vector<float>> heightMap, int size, int numTriangles);
 
 	float homogeneousfbm(float x, float y, int numOctaves);
 	float heterogeneousfbm(float x, float y, int numOctaves);
 	float hybridMultifractal(float x, float y, int numOctaves);
+
+	std::vector<std::vector<float>> erodeTerrainTerraces(std::vector<std::vector<float>> heightMap, int size);
+	std::vector<std::vector<float>> erodeTerrainRealistic(std::vector<std::vector<float>> heightMap, int size);
 
 };
