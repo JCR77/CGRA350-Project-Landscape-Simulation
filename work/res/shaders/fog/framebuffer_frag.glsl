@@ -21,6 +21,7 @@ uniform mat4 uModelViewMatrix;
 uniform vec3 uColor;
 
 uniform float waveOffset;
+uniform float textureSpeed;
 
 // viewspace data (this must match the output of the fragment shader)
 in VertexData {
@@ -50,6 +51,12 @@ vec3 cosWave( vec3 p ){
     return vec3(p.x, p.y, p.z + z);//
 }
 
+vec2 cosWave( vec2 p ){
+    float axis = p.x;//Axis determines what axis the waves are on. Operating on depth so can never be z.
+    float y =  0.015 * cos( (PI2/1) * (p.x + textureSpeed));//
+    return vec2(p.x, p.y + y);//
+}
+
 void main()
 {
 
@@ -64,6 +71,11 @@ void main()
         float depth = logisticDepth(texture(depthBuffer, TexCoords.st).r);
         depth = cosWave(vec3(TexCoords.x,TexCoords.y,depth)).z;
         depth = clamp(depth, 0.0f, 1.0f);
+        
+
+        vec2 uv = cosWave(TexCoords.st); 
+        cfog = texture(fogTexture, uv).rgb;        
+        //FragColor = vec4(texture(fogTexture, uv).rgb, 1.0f);
         FragColor = vec4(cIn, 1.0f) * (1.0f - depth) + vec4(depth * cfog , 1.0f);
     }
     else

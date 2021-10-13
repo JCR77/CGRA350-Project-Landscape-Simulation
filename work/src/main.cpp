@@ -185,7 +185,7 @@ int main() {
 	//Load fog texture
 	GLuint fogTexture;
 	//fogTexture = rgba_image("fogTexture.png").uploadTexture;
-	rgba_image test = rgba_image("fogTexture.png");
+	rgba_image test = rgba_image(CGRA_SRCDIR + string("/res/textures/fogTexture.png"));
 	fogTexture = test.uploadTexture();
 
 	glUseProgram(shader);
@@ -221,6 +221,7 @@ int main() {
 		glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
 
 		glUniform1f(glGetUniformLocation(shader, "waveOffset"), application.fog_renderer.frameIndex);
+		glUniform1f(glGetUniformLocation(shader, "textureSpeed"), application.fog_renderer.frameIndex2);
 		glUniform1f(glGetUniformLocation(shader, "amplitude"), application.fog_renderer.amplitude);
 		glUniform1f(glGetUniformLocation(shader, "period"), application.fog_renderer.period);
 
