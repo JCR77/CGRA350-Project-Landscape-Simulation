@@ -17,7 +17,16 @@
 using namespace std;
 using namespace cgra;
 
-float cool = 7;
+//Plane for displaying texture output
+float quadVertices[] = {
+ -1.0f,  1.0f,  0.0f, 1.0f,
+ -1.0f, -1.0f,  0.0f, 0.0f,
+  1.0f, -1.0f,  1.0f, 0.0f,
+
+ -1.0f,  1.0f,  0.0f, 1.0f,
+  1.0f, -1.0f,  1.0f, 0.0f,
+  1.0f,  1.0f,  1.0f, 1.0f
+};
 
 // forward decleration for cleanliness
 namespace
@@ -116,23 +125,12 @@ int main() {
 	Application application(window);
 	application_ptr = &application;
 
-	//More Dumb stuff
-	float quadVertices[] = { //Mesh used to get the image on screen
-	 // positions   // texCoords
-	 -1.0f,  1.0f,  0.0f, 1.0f,
-	 -1.0f, -1.0f,  0.0f, 0.0f,
-	  1.0f, -1.0f,  1.0f, 0.0f,
-
-	 -1.0f,  1.0f,  0.0f, 1.0f,
-	  1.0f, -1.0f,  1.0f, 0.0f,
-	  1.0f,  1.0f,  1.0f, 1.0f
-	};
-
-	//Get screen resolution
+	//Get and set the inital screen resolution
 	int w, h;
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
 
+	//Create VAO and VBO for texture display plane 
 	unsigned int quadVAO, quadVBO;
 	glGenVertexArrays(1, &quadVAO);
 	glGenBuffers(1, &quadVBO);
@@ -144,17 +142,25 @@ int main() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-	//Shader for same as above
+	//Create shader for display plane
 	shader_builder sb;
 	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//framebuffer_vert.glsl"));
 	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//framebuffer_frag.glsl"));
 	GLuint shader = sb.build();
 
-	//Even more dumb stuff
+	//Load fog texture into shader
+	GLuint fogTexture = rgba_image(CGRA_SRCDIR + string("/res/textures/fogTexture.png")).uploadTexture();
+	glUseProgram(shader);
+	glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, fogTexture);
+
+	//Create frame buffer object
 	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
+	//Create original output texture
 	unsigned int textureColorBuffer;
 	glGenTextures(1, &textureColorBuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
@@ -164,6 +170,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+	//Create depth buffer texture
 	unsigned int depthBuffer;
 	glGenTextures(1, &depthBuffer);
 	glBindTexture(GL_TEXTURE_2D, depthBuffer);
@@ -172,32 +179,16 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//Texture of rendered image should now be created
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		cout << "its not complete lol" << "\n";
-	}
-
-	//Load fog texture
-	GLuint fogTexture;
-	//fogTexture = rgba_image("fogTexture.png").uploadTexture;
-	rgba_image test = rgba_image(CGRA_SRCDIR + string("/res/textures/fogTexture.png"));
-	fogTexture = test.uploadTexture();
-
-	glUseProgram(shader);
-	glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, fogTexture);
-
+	
 
 	// loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
-		//Fix to get correct window size
+		//Fix to get correct window size when window size changes
 		glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
 
 		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
@@ -206,51 +197,42 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, depthBuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
-		//The usual
+		//Render the frame as it usual would be
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		application.render();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind your FBO to set the default framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUseProgram(shader); // shader program for rendering the quad
+		//Set shader to one used to render plane
+		glUseProgram(shader);
 
+		//Pass textures to fragment shader
 		glUniform1i(glGetUniformLocation(shader, "originalOutput"),0);
 		glUniform1i(glGetUniformLocation(shader, "depthBuffer"), 1);
 		glUniform1i(glGetUniformLocation(shader, "fogTexture"), 2);
 
+		//Pass parameters to fragment shader
 		glUniform1f(glGetUniformLocation(shader, "waveOffset"), application.fog_renderer->frameIndex);
-    glUniform1f(glGetUniformLocation(shader, "textureSpeed"), application.fog_renderer->frameIndex2);
+		glUniform1f(glGetUniformLocation(shader, "textureSpeed"), application.fog_renderer->frameIndex2);
 		glUniform1f(glGetUniformLocation(shader, "amplitude"), application.fog_renderer->amplitude);
 		glUniform1f(glGetUniformLocation(shader, "period"), application.fog_renderer->period);
-
-
 		glUniform1f(glGetUniformLocation(shader, "near"), application.fog_renderer->near);
 		glUniform1f(glGetUniformLocation(shader, "far"), application.fog_renderer->far);
-
 		glUniform1f(glGetUniformLocation(shader, "state"), application.show_fog);
-		glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(application.fog_renderer->projectionMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(application.fog_renderer->viewMatrix));
-
-		//std::cout << glm::to_string(application.fog_renderer.viewMatrix) << std::endl;
-
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureColorBuffer); // color attachment texture
+		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
 
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, depthBuffer); // color attachment texture
+		glBindTexture(GL_TEXTURE_2D, depthBuffer);
 
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, fogTexture);
 
-
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, depthBuffer); // color attachment texture
 		glBindVertexArray(quadVAO);
-		// You can also use VAO or attribute pointers instead of only VBO...
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -260,7 +242,6 @@ int main() {
 
 		glfwSwapBuffers(window);
 
-		// poll for and process events
 		glfwPollEvents();
 	}
 

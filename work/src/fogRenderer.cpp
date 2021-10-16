@@ -29,27 +29,12 @@ double currentTime = 0;
 
 
 void basic_fog_model::draw(const glm::mat4& view, const glm::mat4 proj) {
-	mat4 modelview = view * modelTransform;
 
-	glUseProgram(shader); // load shader and variables
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
-
-	//drawCylinder();
-	mesh.draw(); // draw
 }
 
 
 FogRenderer::FogRenderer() {
-	shader_builder sb;
-	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//color_vert.glsl"));
-	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//fog//color_frag.glsl"));
-	GLuint shader = sb.build();
 
-	m_model.shader = shader;
-	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
-	m_model.color = vec3(1, 0, 0);
 }
 
 
@@ -62,19 +47,12 @@ void FogRenderer::render(const glm::mat4& view, const glm::mat4& proj) {
 		frameIndex2 = frameIndex2 + 0.005;
 		deltaTime = 0;
 	}
-	viewMatrix = view;
-	projectionMatrix = proj;
-	//m_model.draw(view, proj);
-	int w, h;
-	glfwGetFramebufferSize(glfwGetCurrentContext(), &w, &h);
-	//glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32F , w,  h, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-
 }
 
 
 void FogRenderer::renderGUI() {
 	ImGui::SliderFloat("Near", &near, 0.0, 1, "");
-	if (ImGui::SliderFloat("Far", &far, 0.0, 500, ""))
+	if (ImGui::SliderFloat("Far", &far, 0.0, 20, ""))
         WaterRenderer::setSceneUpdated();
 	ImGui::SliderFloat("Speed", &indexSpeed, 0.01, 0.1, "");
 	ImGui::SliderFloat("Amplitude", &amplitude, 0.01, 0.1, "");

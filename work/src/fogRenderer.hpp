@@ -27,12 +27,6 @@ struct basic_fog_model {
 // Main terrain renerer class
 //
 class FogRenderer {
-private:
-
-	// geometry
-	basic_fog_model m_model;
-	basic_fog_model m_model2;
-
 public:
 	// setup
 	FogRenderer();
@@ -48,10 +42,7 @@ public:
 	//Variables
 	float near = 0.006f;
 	float far = 140.0f;
-
-	//Matricies
-	glm::mat4 viewMatrix;
-	glm::mat4 projectionMatrix;
+	float state = 0;
 
 	float frameIndex = 0;
 	float frameIndex2 = 0;
