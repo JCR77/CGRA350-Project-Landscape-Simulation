@@ -71,9 +71,9 @@ private:
 							67,29,24,72,243,141,128,195,78,66,215,61,156,180};
 
 	//base terrain
-	float scale = 20;
+	float scale = 25;
 	float baseFrequency = 0.04;
-	int numOctaves = 4;
+	int numOctaves = 6;
 	float frequencyMultiplier = 2;
 	float amtitudeMultiplier = 0.5;
 
@@ -87,14 +87,14 @@ private:
 	bool shouldErodeTerrain = false;
 	int terrainType = 1; //0 = terraces,	1 = realistic	
 
-	float talusThreshold = 0.6f;
-	float sedimentvolume = 0.5;
+	float talusThreshold = 1.0f;
+	float sedimentvolume = 0.05;
 
-	float totalIterations = 20;
+	float totalIterations = 40;
 
 	float kr = 0.1;
-	float ks = 0.3;
-	float ke = 0.8;
+	float ks = 0.1;
+	float ke = 0.5;
 	float kc = 0.1;
 
 	std::vector<std::vector<float>> waterVolume = std::vector<std::vector<float>>();

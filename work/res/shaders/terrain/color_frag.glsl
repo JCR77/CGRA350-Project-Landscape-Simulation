@@ -62,7 +62,7 @@ void main() {
 
 
 	//render water on terrain
-	blendedTex = mix(blendedTex, vec3(0,0,1), f_in.waterVolume);
+	blendedTex = mix(blendedTex, vec3(0,0,1), f_in.waterVolume*0.3);
 
 	// calculate lighting (hack)
 	vec3 eye = normalize(-f_in.position);

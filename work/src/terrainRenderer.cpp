@@ -320,7 +320,6 @@ float TerrainRenderer::perlinNoise(float x, float y) {
 	float yf = fmod(y, 1.0f);
 
 	//get hash for each corner
-	//TODO double to table to don't need %256
 	int TR = permutations[(permutations[(X + 1) % 256] + Y + 1) % 256]; //top right
 	int TL = permutations[(permutations[X       % 256] + Y + 1) % 256]; //top left
 	int BR = permutations[(permutations[(X + 1) % 256] + Y)     % 256]; //bottom right
@@ -451,29 +450,6 @@ void TerrainRenderer::generateTerrain(int numOctaves) {
 	// reflection and refraction textures
 	WaterRenderer::setSceneUpdated();
 }
-
-/*
-mesh_builder TerrainRenderer::generateMeshFromHeightMap(std::vector<std::vector<float>> heightMap, int size, int numTriangles) {
-	//generate mesh
-	//mesh_builder plane_mb = generatePlane(size, numTriangles);
-
-	for (int y = 1; y <= numTriangles + 1; y++) {
-		for (int x = 1; x <= numTriangles + 1; x++) {
-			int i = (y - 1) * (numTriangles + 1) + (x - 1);
-
-			plane_mb.vertices[i].pos.y = heightMap[y][x];
-
-			//calc normal
-			float normX = heightMap[y][x - 1] / scale - heightMap[y][x + 1] / scale; //difference in height of previous vertex and next vertex along the x axis
-			float normZ = heightMap[y - 1][x] / scale - heightMap[y + 1][x] / scale; //difference in height of previous vertex and next vertex along the z axis	
-			plane_mb.vertices[i].norm = normalize(vec3(normX, 2, normZ));
-		}
-	}
-
-	m_model.heightMap = heightMap;
-	return plane_mb;
-}
-*/
 
 
 mesh_builder TerrainRenderer::generatePlane() {
@@ -723,7 +699,7 @@ float TerrainRenderer::hybridMultifractal(float x, float y, int numOctaves) {
 	for (int i = 0; i < numOctaves; i++) {
 		float noise = (perlinNoise(x * baseFrequency * pow(frequencyMultiplier, i), y * baseFrequency * pow(frequencyMultiplier, i)) + offset) * pow(pow(amtitudeMultiplier, i), H);
 
-		//scale by current height (to smooth valleys)
+		//scale by previous frequency
 		float scaledNoise = noise * weight;
 
 		//add noise to current height function value
